@@ -1,4 +1,6 @@
 # Custom ignores
+.DS_Store
+.vscode/
 bin/
 CMakeCache.txt
 CMakeFiles/
