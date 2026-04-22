@@ -2,9 +2,7 @@
 #include <GLFW/glfw3.h>
 #include <iostream>
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
-    glViewport(0, 0, width, height);
-}
+#include "ui.h"
 
 void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -20,6 +18,8 @@ int main() {
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
 #endif
 
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+
     GLFWwindow* window = glfwCreateWindow(800, 600, "ATELIE", NULL, NULL);
     if (window == NULL) {
         std::cout << "Failed to create GLFW window" << std::endl;
@@ -33,8 +33,9 @@ int main() {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
     glEnable(GL_DEPTH_TEST);
+
+    ui_init(window);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -42,11 +43,15 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+        ui_process();
+
         // TODO
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
+    ui_cleanup();
 
     glfwTerminate();
     return 0;

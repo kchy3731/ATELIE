@@ -113,6 +113,8 @@ int main() {
     glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
     glEnableVertexAttribArray(1);
 
+    glm::vec3 translation = glm::vec3(0.0f, 0.0f, 0.0f);
+
     while (!glfwWindowShouldClose(window)) {
         if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
             glfwSetWindowShouldClose(window, true);
@@ -123,10 +125,29 @@ int main() {
         glUseProgram(shaderProgram);
 
         glm::mat4 model = glm::mat4(1.0f);
+
+        if (glfwGetKey(window, GLFW_KEY_W)) {
+            translation.y += 0.015f;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_S)) {
+            translation.y -= 0.015f;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_A)) {
+            translation.x -= 0.015f;
+        }
+
+        if (glfwGetKey(window, GLFW_KEY_D)) {
+            translation.x += 0.015f;
+        }
+
+        model = glm::translate(model, translation);
+
         model = glm::rotate(model, (float)glfwGetTime() * glm::radians(50.0f), glm::vec3(0.5f, 1.0f, 0.0f));
         
         glm::mat4 view = glm::mat4(1.0f);
-        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
+        view = glm::translate(view, glm::vec3(0.0f, 0.0f, -8.0f));
         
         glm::mat4 projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
