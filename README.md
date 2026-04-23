@@ -5,6 +5,3 @@
 3. `cmake .`
 4. `make`
 5. `./bin/ATELIE`
-
-current camera move: wasdqe, mouse to look around
-change mesh: 1, 2

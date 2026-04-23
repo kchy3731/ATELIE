@@ -1,6 +1,7 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <iostream>
+#include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -58,9 +59,16 @@ float lastFrame = 0.0f;
 // --- Global State for Input ---
 // (In a real engine, this goes in your Stage/State Machine class)
 int currentMeshIndex = 0; 
-bool key1_pressed_last_frame = false;
-bool key2_pressed_last_frame = false;
 
+std::string inputBuffer = "";
+glm::mat4 customTransform = glm::mat4(1.0f);
+
+void character_callback(GLFWwindow* window, unsigned int codepoint) {
+    if (codepoint >= '0' && codepoint <= '9') {
+        inputBuffer += (char)codepoint;
+        std::cout << "Buffer: " << inputBuffer << std::endl;
+    }
+}
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height) {
     glViewport(0, 0, width, height);
@@ -125,15 +133,75 @@ void processInput(GLFWwindow* window) {
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
         cameraPos -= cameraSpeed * cameraUp;
 
-    //SHOULD BE CHANAGED LATER FOR CLEAN CODE
-    // Prevent holding the key from swapping 60 times a second
-    bool key1_pressed = glfwGetKey(window, GLFW_KEY_1) == GLFW_PRESS;
-    if (key1_pressed && !key1_pressed_last_frame) currentMeshIndex = 0;
-    key1_pressed_last_frame = key1_pressed;
+    bool enter_pressed = glfwGetKey(window, GLFW_KEY_ENTER) == GLFW_PRESS;
+    static bool enter_pressed_last_frame = false;
+    if (enter_pressed && !enter_pressed_last_frame) {
+        if (!inputBuffer.empty()) {
+            std::cout << "Executing instruction: " << inputBuffer << std::endl;
+            char cat = inputBuffer[0];
+            
+            if (cat == '0') {
+                customTransform = glm::mat4(1.0f);
+            } else if (cat == '2') {
+                if (inputBuffer.length() > 1) {
+                    int meshIdx = inputBuffer[1] - '0';
+                    if (meshIdx == 0 || meshIdx == 1) currentMeshIndex = meshIdx;
+                }
+            } else if (cat == '1') {
+                if (inputBuffer.length() >= 4) {
+                    char op = inputBuffer[1];
+                    char axis = inputBuffer[2];
+                    char sign = inputBuffer[3];
+                    float val = 1.0f;
+                    
+                    if (inputBuffer.length() > 4) {
+                        try {
+                            val = std::stof(inputBuffer.substr(4));
+                        } catch(...) { val = 1.0f; }
+                    }
 
-    bool key2_pressed = glfwGetKey(window, GLFW_KEY_2) == GLFW_PRESS;
-    if (key2_pressed && !key2_pressed_last_frame) currentMeshIndex = 1;
-    key2_pressed_last_frame = key2_pressed;
+                    if (op == '1') { // Scale
+                        if (sign == '1') val = 1.0f / (val != 0.0f ? val : 1.0f);
+                    } else { // Translate or Rotate
+                        if (sign == '1') val = -val;
+                    }
+
+                    glm::vec3 axisVec(0.0f);
+                    if (axis == '1') axisVec.x = 1.0f;
+                    else if (axis == '2') axisVec.y = 1.0f;
+                    else if (axis == '3') axisVec.z = 1.0f;
+                    else if (axis == '4') axisVec = glm::vec3(1.0f);
+
+                    if (op == '1') {
+                        glm::vec3 scaleVec = (axis == '4') ? glm::vec3(val) : (axisVec * (val - 1.0f) + glm::vec3(1.0f));
+                        customTransform = glm::scale(customTransform, scaleVec);
+                    } else if (op == '2') {
+                        customTransform = glm::translate(customTransform, axisVec * val);
+                    } else if (op == '3') {
+                        if (axis != '4') {
+                            customTransform = glm::rotate(customTransform, glm::radians(val), axisVec);
+                        }
+                    }
+                } else {
+                    std::cout << "Incomplete transform instruction." << std::endl;
+                }
+            } else {
+                std::cout << "Unknown command category." << std::endl;
+            }
+            inputBuffer.clear();
+        }
+    }
+    enter_pressed_last_frame = enter_pressed;
+
+    bool backspace_pressed = glfwGetKey(window, GLFW_KEY_BACKSPACE) == GLFW_PRESS;
+    static bool backspace_pressed_last_frame = false;
+    if (backspace_pressed && !backspace_pressed_last_frame) {
+        if (!inputBuffer.empty()) {
+            inputBuffer.pop_back();
+            std::cout << "Buffer: " << inputBuffer << std::endl;
+        }
+    }
+    backspace_pressed_last_frame = backspace_pressed;
 
 }
 
@@ -151,6 +219,7 @@ int main() {
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
     glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetCharCallback(window, character_callback);
 
     // tell GLFW to capture our mouse (normal mode so we can click safely)
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_NORMAL);
@@ -243,7 +312,7 @@ int main() {
         lastFrame = currentFrame;
 
         // --- Create 3D Camera Math ---
-        glm::mat4 model = glm::mat4(1.0f);
+        glm::mat4 model = customTransform;
 
         glm::mat4 view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
 
