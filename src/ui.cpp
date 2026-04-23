@@ -1,6 +1,6 @@
 #include "ui.h"
 
-void ui_init(GLFWwindow* window) {
+void UI::Init(GLFWwindow* window) {
     IMGUI_CHECKVERSION();
 
     ImGui::CreateContext();
@@ -20,17 +20,24 @@ void ui_init(GLFWwindow* window) {
     ImGui_ImplOpenGL3_Init("#version 330 core");
 }
 
-void ui_process() {
+void UI::Process(AtelieState& state) {
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("Toolbox");
-    ImGui::Text("Hello, world!");
+    ImGui::Begin("DEBUG");
+    ImGui::Text("ATELIE v0.0");
+    ImGui::Checkbox("Wireframe Mode", &state.showWireframe);
     ImGui::End();
 
     if (ImGui::BeginMainMenuBar()) {
-        ImGui::Text("ATELIE v0.0  ");
+        ImGui::Text(state.title);
+        ImGui::Text(state.version);
+        if (!state.showWireframe) { // TODO
+            ImGui::Text("                                                    X");
+        } else {
+            ImGui::Text("               wireframe                            X");
+        }
         ImGui::EndMainMenuBar();
     }
 
@@ -38,7 +45,7 @@ void ui_process() {
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
 }
 
-void ui_cleanup() {
+void UI::Cleanup() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();

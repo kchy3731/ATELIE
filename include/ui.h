@@ -4,9 +4,12 @@
 #include "imgui_impl_glfw.h"
 #include "imgui_impl_opengl3.h"
 
-void ui_init(GLFWwindow* window);
+#include "state.h"
 
-void ui_process();
+namespace UI {
+    void Init(GLFWwindow* window);
 
-void ui_cleanup();
+    void Process(AtelieState& state);
 
+    void Cleanup();
+}

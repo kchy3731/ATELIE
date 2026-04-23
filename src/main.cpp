@@ -1,7 +1,12 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+
 #include <iostream>
 
+#include "state.h"
+
+#include "input.h"
+#include "render.h"
 #include "ui.h"
 
 void processInput(GLFWwindow* window) {
@@ -10,6 +15,8 @@ void processInput(GLFWwindow* window) {
 }
 
 int main() {
+
+    // WINDOW SETUP
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
@@ -34,7 +41,10 @@ int main() {
     }
     glEnable(GL_DEPTH_TEST);
 
-    ui_init(window);
+    AtelieState state;
+
+    Render::Init();
+    UI::Init(window);
 
     while (!glfwWindowShouldClose(window)) {
         processInput(window);
@@ -42,15 +52,16 @@ int main() {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        ui_process();
-
-        // TODO
+        Input::Process(window, state);
+        Render::Draw(state);
+        UI::Process(state);
 
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
 
-    ui_cleanup();
+    Render::Cleanup();
+    UI::Cleanup();
 
     glfwTerminate();
     return 0;

@@ -9,6 +9,8 @@ find_package(glfw3 REQUIRED)
 
 add_executable(ATELIE 
     src/main.cpp 
+    src/input.cpp
+    src/render.cpp
     src/ui.cpp
 
     # glad
@@ -25,6 +27,7 @@ add_executable(ATELIE
 )
 
 target_include_directories(ATELIE PRIVATE ${CMAKE_SOURCE_DIR}/include)
+target_include_directories(ATELIE PRIVATE ${CMAKE_SOURCE_DIR}/vendor/glm)
 target_include_directories(ATELIE PRIVATE ${CMAKE_SOURCE_DIR}/vendor/glad/include)
 target_include_directories(ATELIE PRIVATE ${CMAKE_SOURCE_DIR}/vendor/imgui)
 target_include_directories(ATELIE PRIVATE ${CMAKE_SOURCE_DIR}/vendor/imgui/backends)
