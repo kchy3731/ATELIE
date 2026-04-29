@@ -1,7 +1,7 @@
 #pragma once
 
 #include <vector>
-#include <glm/glm.hpp>
+#include <glm.hpp>
 
 struct Vertex {
     glm::vec3 position;
@@ -9,6 +9,9 @@ struct Vertex {
 };
 
 namespace Primitives {
-    std::vector<Vertex> CreateCubeVertices();
-    std::vector<unsigned int> CreateCubeIndices();
+    std::vector<Vertex> CubeVertices();
+    std::vector<unsigned int> CubeIndices();
+
+    std::vector<Vertex> TriangleVertices();
+    std::vector<unsigned int> TriangleIndices();
 }

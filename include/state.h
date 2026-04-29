@@ -10,6 +10,19 @@ enum class CameraOrientation { Free, SnappedX, SnappedY, SnappedZ };
 
 enum class ActiveTool { None, View, Translate /* Fill out! */};
 
+enum class MeshType { Cube, Triangle, Plane };
+enum class ObjectType { Static, Dynamic, Light };
+
+struct SceneObject {
+    std::string name;
+    MeshType meshType;
+    ObjectType objectType;
+
+    glm::vec3 position = glm::vec3(0.0f);
+    glm::vec3 rotation = glm::vec3(0.0f);
+    glm::vec3 scale = glm::vec3(1.0f);
+};
+
 struct Keystroke {
     int key;
     int mods;
@@ -50,6 +63,9 @@ struct EditorState {
 struct AtelieState {
     // SAVE/LOAD
     Transcript transcript;
+
+    // SCENE
+    std::vector<SceneObject> scene;
 
     // RENDER
     bool showWireframe = false;

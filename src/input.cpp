@@ -1,4 +1,7 @@
 #include "input.h"
+#include <imgui.h>
+#include "render.h"
+#include <algorithm>
 
 namespace Input {
     // private
@@ -114,9 +117,42 @@ namespace Input {
         }
     }
 
+    void _MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+        if (action != GLFW_PRESS) return;
+
+        // Don't click through the UI
+        if (ImGui::GetIO().WantCaptureMouse) return;
+
+        if (button == GLFW_MOUSE_BUTTON_LEFT) {
+            AtelieState* state = (AtelieState*) glfwGetWindowUserPointer(window);
+            double xpos, ypos;
+            glfwGetCursorPos(window, &xpos, &ypos);
+
+            int pickedID = Render::PickObject(*state, xpos, ypos);
+
+            // Handle selection
+            if (!(mods & GLFW_MOD_CONTROL)) {
+                state->editor.selection.clear();
+            }
+
+            if (pickedID >= 0 && pickedID < state->scene.size()) {
+                auto it = std::find(state->editor.selection.begin(), state->editor.selection.end(), pickedID);
+                if (it != state->editor.selection.end()) {
+                    // Already selected, toggle off if Ctrl is held
+                    if (mods & GLFW_MOD_CONTROL) {
+                        state->editor.selection.erase(it);
+                    }
+                } else {
+                    state->editor.selection.push_back(pickedID);
+                }
+            }
+        }
+    }
+
     // public
     void Init(GLFWwindow* window) {
         glfwSetKeyCallback(window, _KeyCallback);
+        glfwSetMouseButtonCallback(window, _MouseButtonCallback);
     }
 
     void Process(GLFWwindow* window, AtelieState& state) {

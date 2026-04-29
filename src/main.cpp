@@ -43,6 +43,14 @@ int main() {
     Render::Init();
     UI::Init(window);
 
+    // Populate default scene
+    SceneObject triObj;
+    triObj.name = "MyTriangle";
+    triObj.meshType = MeshType::Triangle;
+    triObj.objectType = ObjectType::Static;
+    triObj.position = glm::vec3(2.0f, 0.0f, 0.0f);
+    state.scene.push_back(triObj);
+
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);

@@ -8,5 +8,6 @@
 namespace Render {
     void Init();
     void Draw(const AtelieState& state);
+    int PickObject(const AtelieState& state, double x, double y);
     void Cleanup();
 }

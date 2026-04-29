@@ -11,6 +11,7 @@ add_executable(ATELIE
     src/main.cpp 
     src/input.cpp
     src/render.cpp
+    src/primitives.cpp
     src/ui.cpp
 
     # glad
