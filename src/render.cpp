@@ -71,9 +71,9 @@ namespace Render {
         glBindVertexArray(VAO);
 
         // model view projection
-        glm::mat4 model = glm::mat4(1.0f); // identity matrix
-        glm::mat4 view = glm::lookAt(state.camera.position, state.camera.position + state.camera.front, state.camera.up);
-        glm::mat4 projection = glm::perspective(glm::radians(state.camera.fov), 640.0f / 480.0f, 0.1f, 100.0f);
+        glm::mat4 model = glm::mat4(1.0f); // identity matrixj
+        glm::mat4 view = glm::lookAt(state.camera.position, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+        glm::mat4 projection = glm::perspective(glm::radians(40.0f), 800.0f / 600.0f, 0.1f, 100.0f);
         glm::mat4 mvp = projection * view * model;
 
         int matrixLocation = glGetUniformLocation(shaderProgram, "MVP");

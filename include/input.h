@@ -5,5 +5,6 @@
 #include "state.h"
 
 namespace Input {
+    void Init(GLFWwindow* window);
     void Process(GLFWwindow* window, AtelieState& state);
 }

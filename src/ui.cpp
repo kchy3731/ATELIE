@@ -31,8 +31,8 @@ void UI::Process(AtelieState& state) {
     ImGui::End();
 
     if (ImGui::BeginMainMenuBar()) {
-        ImGui::Text(state.title);
-        ImGui::Text(state.version);
+        ImGui::Text(state.ui.title);
+        ImGui::Text(state.ui.version);
         if (!state.showWireframe) { // TODO
             ImGui::Text("                                                    X");
         } else {

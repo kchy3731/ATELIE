@@ -9,11 +9,6 @@
 #include "render.h"
 #include "ui.h"
 
-void processInput(GLFWwindow* window) {
-    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
-        glfwSetWindowShouldClose(window, true);
-}
-
 int main() {
 
     // WINDOW SETUP
@@ -42,13 +37,13 @@ int main() {
     glEnable(GL_DEPTH_TEST);
 
     AtelieState state;
+    glfwSetWindowUserPointer(window, &state);
 
+    Input::Init(window);
     Render::Init();
     UI::Init(window);
 
     while (!glfwWindowShouldClose(window)) {
-        processInput(window);
-
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
