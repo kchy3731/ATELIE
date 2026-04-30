@@ -105,40 +105,73 @@ namespace Input {
     }
 
     bool _HandleTranslate(AtelieState& state, int key) {
+        float& increment = state.editor.increment;
+        glm::vec2& values = state.editor.values;
+        TransformConstraints& constraints = state.editor.constraints;
+
         switch (key) {
             case GLFW_KEY_W:
-                state.editor.values.y += state.editor.increment;
+                values.y += increment;
                 break;
             case GLFW_KEY_S:
-                state.editor.values.y -= state.editor.increment;
+                values.y -= increment;
                 break;
             case GLFW_KEY_A:
-                state.editor.values.x -= state.editor.increment;
+                values.x -= increment;
                 break;
             case GLFW_KEY_D:
-                state.editor.values.x += state.editor.increment;
+                values.x += increment;
                 break;
             case GLFW_KEY_X:
-                state.editor.constraints.x = !state.editor.constraints.x;
-                state.editor.constraints.y = false;
-                state.editor.constraints.z = false;
+                constraints.x = !constraints.x;
+                constraints.y = false;
+                constraints.z = false;
                 break;
             case GLFW_KEY_Y:
-                state.editor.constraints.x = false;
-                state.editor.constraints.y = !state.editor.constraints.y;
-                state.editor.constraints.z = false;
+                constraints.x = false;
+                constraints.y = !constraints.y;
+                constraints.z = false;
                 break;
             case GLFW_KEY_Z:
-                state.editor.constraints.x = false;
-                state.editor.constraints.y = false;
-                state.editor.constraints.z = !state.editor.constraints.z;
+                constraints.x = false;
+                constraints.y = false;
+                constraints.z = !constraints.z;
                 break;
             case GLFW_KEY_L:
-                state.editor.constraints.local = !state.editor.constraints.local;
+                constraints.local = !constraints.local;
                 break;
             default: return false;
         }
-        state.editor.previewTranslate = glm::vec3(state.editor.values.x, state.editor.values.y, 0.0f);
+        glm::vec3 translate = glm::vec3(0.0f);
+        glm::vec3 camRight = GetCameraRight(state);
+        glm::vec3 camFront = GetCameraFront(state);
+        glm::mat3 anchorRotBasis = GetRotBasis(state.scene[state.cursor]);
+        if (!constraints.x && !constraints.y && !constraints.z && !constraints.local) {
+            glm::vec3 camUp = GetCameraUp(state);
+            translate = camRight * values.x + camUp * values.y;
+        }
+        if (constraints.x) {
+            float sign = 1.0f;
+            if (constraints.local) {
+                glm::vec3 bCamRight = glm::inverse(anchorRotBasis) * camRight;
+                sign = (bCamRight.x > 0) ? 1.0f : -1.0f;
+            } else {
+                sign = (camRight.x > 0) ? 1.0f : -1.0f;
+            }
+            translate.x += values.x * sign;
+        }
+        if (constraints.z) {
+            float sign = 1.0f;
+            if (constraints.local) {
+                glm::vec3 bCamRight = glm::inverse(anchorRotBasis) * camRight;
+                sign = (bCamRight.z > 0) ? 1.0f : -1.0f;
+            } else {
+                sign = (camRight.z > 0) ? 1.0f : -1.0f;
+            }
+            translate.z += values.x * sign;
+        }
+        if (constraints.local) translate = anchorRotBasis * translate;
+        state.editor.previewTranslate = translate;
         return true;
     }
 
@@ -169,12 +202,16 @@ namespace Input {
             if (toolActive) {
                 if (editor.tool == ActiveTool::Increment) goto commit;
                 transcript.pending.clear();
-                editor.previewTranslate = glm::vec3(0.0f);
-                editor.values = glm::vec2(0.0f);
             } else {
                 state->multiselect = false;
             }
             editor.tool = ActiveTool::None;
+            editor.constraints.x = false;
+            editor.constraints.y = false;
+            editor.constraints.z = false;
+            editor.constraints.local = false;
+            editor.previewTranslate = glm::vec3(0.0f);
+            editor.values = glm::vec2(0.0f);
             return;
         }
 
@@ -195,6 +232,10 @@ namespace Input {
             transcript.pending.clear();
             editor.tool = ActiveTool::None;
             editor.values = glm::vec2(0.0f);
+            editor.constraints.x = false;
+            editor.constraints.y = false;
+            editor.constraints.z = false;
+            editor.constraints.local = false;
             return;
         }
 

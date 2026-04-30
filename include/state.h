@@ -7,6 +7,7 @@
 #include <vector>
 
 #include <glm.hpp>
+#include <gtc/matrix_transform.hpp>
 
 #include "primitives.h"
 #include "scene.h"
@@ -82,3 +83,8 @@ struct AtelieState {
     CameraState camera;
     EditorState editor;
 };
+
+glm::mat3 GetRotBasis(const Scene::Object& obj);
+glm::vec3 GetCameraRight(const AtelieState& state);
+glm::vec3 GetCameraFront(const AtelieState& state);
+glm::vec3 GetCameraUp(const AtelieState& state);

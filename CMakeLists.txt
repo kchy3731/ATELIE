@@ -7,7 +7,8 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 find_package(OpenGL REQUIRED)
 find_package(glfw3 REQUIRED)
 
-add_executable(ATELIE 
+add_executable(ATELIE
+    src/state.cpp
     src/main.cpp 
     src/input.cpp
     src/render.cpp

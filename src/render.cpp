@@ -126,11 +126,11 @@ namespace Render {
                 const Scene::MeshData& mesh = obj.meshData;
 
                 glm::mat4 model = glm::mat4(1.0f);
+                glm::vec3 position = obj.position;
                 if (state.cursor == i || state.selected[i]) {
-                    glm::vec3 translate = state.editor.previewTranslate;
-                    model = glm::translate(model, translate);
+                    position = position + state.editor.previewTranslate;
                 }
-                model = glm::translate(model, obj.position);
+                model = glm::translate(model, position);
                 model = glm::rotate(model, glm::radians(obj.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
                 model = glm::rotate(model, glm::radians(obj.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
                 model = glm::rotate(model, glm::radians(obj.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -161,16 +161,16 @@ namespace Render {
             const Scene::MeshData& mesh = obj.meshData;
 
             glm::mat4 model = glm::mat4(1.0f);
-            if (state.cursor == i || state.selected[i]) {
-                glm::vec3 translate = state.editor.previewTranslate;
-                model = glm::translate(model, translate);
-            }
-            model = glm::translate(model, obj.position);
+
+            glm::vec3 position = obj.position;
+            if (state.cursor == i || state.selected[i]) position = position + state.editor.previewTranslate;
+            model = glm::translate(model, position);
+
             model = glm::rotate(model, glm::radians(obj.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
             model = glm::rotate(model, glm::radians(obj.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
             model = glm::rotate(model, glm::radians(obj.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-            model = glm::scale(model, obj.scale);
 
+            model = glm::scale(model, obj.scale);
 
             glm::mat4 m = model;
             glm::mat4 vp = projection * view;
