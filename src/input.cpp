@@ -318,12 +318,12 @@ namespace Input {
             scale.z += values.y;
         }
         if (constraints.local) {
-            glm::vec3 axis;
+            glm::vec3 axis = glm::vec3(1.0f, 1.0f, 1.0f);
             if (constraints.x) axis = anchorRotBasis[0];
             else if (constraints.y) axis = anchorRotBasis[1];
             else if (constraints.z) axis = anchorRotBasis[2];
 
-            scale += glm::normalize(axis) + values.y;
+            scale += (glm::normalize(axis) * values.y);
         }
         state.editor.previewScale = scale;
         return true;
