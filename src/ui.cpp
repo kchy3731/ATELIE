@@ -40,7 +40,7 @@ void _ProcessStatusString(AtelieState& state) {
             break;
         case (ActiveTool::Increment):
             temp = statusString[29];
-            sprintf(statusString + 20, "\\%1.1f-----", state.editor.increment);
+            snprintf(statusString + 20, 10, "\\%1.1f-----", state.editor.increment);
             statusString[29] = temp;
             break;
         case (ActiveTool::View):
@@ -48,6 +48,20 @@ void _ProcessStatusString(AtelieState& state) {
             break;
         case (ActiveTool::Translate):
             strncpy(statusString + 20, "MOVE-----", 9);
+            if (state.editor.constraints.x) statusString[25] = 'X'; else statusString[25] = '-';
+            if (state.editor.constraints.y) statusString[26] = 'Y'; else statusString[26] = '-';
+            if (state.editor.constraints.z) statusString[27] = 'Z'; else statusString[27] = '-';
+            if (state.editor.constraints.local) statusString[28] = 'L'; else statusString[28] = '-';
+            break;
+        case (ActiveTool::Rotate):
+            strncpy(statusString + 20, "ROTN-----", 9);
+            if (state.editor.constraints.x) statusString[25] = 'X'; else statusString[25] = '-';
+            if (state.editor.constraints.y) statusString[26] = 'Y'; else statusString[26] = '-';
+            if (state.editor.constraints.z) statusString[27] = 'Z'; else statusString[27] = '-';
+            if (state.editor.constraints.local) statusString[28] = 'L'; else statusString[28] = '-';
+            break;
+        case (ActiveTool::Scale):
+            strncpy(statusString + 20, "SCAL-----", 9);
             if (state.editor.constraints.x) statusString[25] = 'X'; else statusString[25] = '-';
             if (state.editor.constraints.y) statusString[26] = 'Y'; else statusString[26] = '-';
             if (state.editor.constraints.z) statusString[27] = 'Z'; else statusString[27] = '-';
@@ -68,8 +82,8 @@ void UI::Process(AtelieState& state) {
 
     _ProcessStatusString(state);
     if (ImGui::BeginMainMenuBar()) {
-        ImGui::Text(state.ui.title);
-        ImGui::Text(statusString);
+        ImGui::Text("%s", state.ui.title);
+        ImGui::Text("%s", statusString);
         ImGui::EndMainMenuBar();
     }
 

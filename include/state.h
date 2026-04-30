@@ -12,10 +12,9 @@
 #include "primitives.h"
 #include "scene.h"
 
-enum class ProjectionType { Perspective, Orthographic };
 enum class CameraOrientation { Free, SnappedX, SnappedY, SnappedZ };
 
-enum class ActiveTool { None, Increment, View, Translate /* Fill out! */};
+enum class ActiveTool { None, Increment, View, Translate, Rotate, Scale };
 
 enum class MeshType { Cube, Triangle, Plane };
 enum class ObjectType { Static, Dynamic, Light };
@@ -43,7 +42,9 @@ struct CameraState {
     float azimuth = 50.0f;
     float polar = 30.0f;
 
-    ProjectionType projection = ProjectionType::Perspective;
+    bool orthographic = false;
+    float orthographicSize = 1.25f;
+
     CameraOrientation orientation = CameraOrientation::Free;
 
     glm::vec3 position;
@@ -59,6 +60,8 @@ struct TransformConstraints {
 struct EditorState {
     TransformConstraints constraints;
     glm::vec3 previewTranslate = glm::vec3(0.0f);
+    glm::quat previewRotate = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+    glm::vec3 previewScale = glm::vec3(1.0f);
     glm::vec2 values = glm::vec2(0.0f);
     
     float increment = 0.1f;

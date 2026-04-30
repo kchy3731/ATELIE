@@ -43,15 +43,16 @@ int main() {
     UI::Init(window);
 
     state.scene.push_back(Scene::CreateSceneObject(Scene::BasicObjectType::Cube));
+    state.selected.push_back(false);
     state.scene.push_back(Scene::CreateSceneObject(Scene::BasicObjectType::Cube));
-    state.scene.push_back(Scene::CreateSceneObject(Scene::BasicObjectType::Cube));
-    state.scene[1].position = glm::vec3(0.5f, 0.5f, 0.0f);
-    state.scene[1].rotation = glm::vec3(0.0f, 45.0f, 0.0f);
-    state.scene[2].position = glm::vec3(1.5f, 0.0f, 0.0f);
     state.selected.push_back(false);
-    state.selected.push_back(false);
-    state.selected.push_back(false);
+    state.scene[1].position = glm::vec3(1.0f, 1.0f, 0.0f);
+
     state.cursor = 0;
+    state.editor.constraints.x = false;
+    state.editor.constraints.y = false;
+    state.editor.constraints.z = false;
+    state.editor.constraints.local = false;
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

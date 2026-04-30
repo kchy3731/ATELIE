@@ -8,6 +8,8 @@ namespace Input {
     void _UpdateCameraPosition(AtelieState& state) {
         state.camera.polar = (state.camera.polar > 90.0f) ? 90.0f : state.camera.polar;
         state.camera.polar = (state.camera.polar < -90.0f) ? -90.0f : state.camera.polar;
+        state.camera.orthographicSize = (state.camera.orthographicSize < 0.25f) ? 0.25f : state.camera.orthographicSize;
+
         float azRad = glm::radians(state.camera.azimuth);
         float polRad = glm::radians(state.camera.polar);
 
@@ -19,6 +21,7 @@ namespace Input {
     bool _HandleIdle(AtelieState& state, int key) {
         switch (key) {
             case GLFW_KEY_Z: state.editor.wireframe = !state.editor.wireframe; break;
+            case GLFW_KEY_O: state.camera.orthographic = !state.camera.orthographic; break;
             //---
             case GLFW_KEY_TAB: state.editor.editMode = !state.editor.editMode; break;
             //---
@@ -26,8 +29,8 @@ namespace Input {
             case GLFW_KEY_S: state.camera.polar -= 10.0f; state.camera.orientation = CameraOrientation::Free; break;
             case GLFW_KEY_A: state.camera.azimuth -= 10.0f; state.camera.orientation = CameraOrientation::Free; break;
             case GLFW_KEY_D: state.camera.azimuth += 10.0f; state.camera.orientation = CameraOrientation::Free; break;
-            case GLFW_KEY_EQUAL: state.camera.radius -= 0.25f; break;
-            case GLFW_KEY_MINUS: state.camera.radius += 0.25f; break;
+            case GLFW_KEY_EQUAL: state.camera.radius -= 0.25f; state.camera.orthographicSize -= 0.25f; break;
+            case GLFW_KEY_MINUS: state.camera.radius += 0.25f; state.camera.orthographicSize += 0.25f; break;
             // ---
             case GLFW_KEY_SPACE:
                 if (!state.multiselect) {
@@ -42,7 +45,10 @@ namespace Input {
             // ---
             case GLFW_KEY_BACKSLASH: state.editor.tool = ActiveTool::Increment; break;
             case GLFW_KEY_V: state.editor.tool = ActiveTool::View; break;
+            // ---
             case GLFW_KEY_G: state.editor.tool = ActiveTool::Translate; break;
+            case GLFW_KEY_R: state.editor.tool = ActiveTool::Rotate; break;
+            case GLFW_KEY_M: state.editor.tool = ActiveTool::Scale; break;
             default: return false;
         }
         return true;
@@ -104,6 +110,16 @@ namespace Input {
         return true;
     }
 
+    float AxisSign(const glm::vec3& camVec, const glm::vec3& axis, const glm::mat3& localBasisInv, bool local) {
+        glm::vec3 v = local ? (localBasisInv * camVec) : camVec;
+        return (glm::dot(v, axis) > 0) ? 1.0f : -1.0f;
+    }
+
+    bool SteeperThan45(glm::vec3 v) {
+        v = glm::normalize(v);
+        return std::abs(v.y) > 0.7071f;  // √2 / 2
+    }
+
     bool _HandleTranslate(AtelieState& state, int key) {
         float& increment = state.editor.increment;
         glm::vec2& values = state.editor.values;
@@ -142,6 +158,7 @@ namespace Input {
                 break;
             default: return false;
         }
+
         glm::vec3 translate = glm::vec3(0.0f);
         glm::vec3 camRight = GetCameraRight(state);
         glm::vec3 camFront = GetCameraFront(state);
@@ -151,23 +168,14 @@ namespace Input {
             translate = camRight * values.x + camUp * values.y;
         }
         if (constraints.x) {
-            float sign = 1.0f;
-            if (constraints.local) {
-                glm::vec3 bCamRight = glm::inverse(anchorRotBasis) * camRight;
-                sign = (bCamRight.x > 0) ? 1.0f : -1.0f;
-            } else {
-                sign = (camRight.x > 0) ? 1.0f : -1.0f;
-            }
+            float sign = AxisSign(camRight, glm::vec3(1.0f, 0.0f, 0.0f), glm::transpose(anchorRotBasis), constraints.local);
             translate.x += values.x * sign;
         }
+        if (constraints.y) {
+            translate.y += values.y;
+        }
         if (constraints.z) {
-            float sign = 1.0f;
-            if (constraints.local) {
-                glm::vec3 bCamRight = glm::inverse(anchorRotBasis) * camRight;
-                sign = (bCamRight.z > 0) ? 1.0f : -1.0f;
-            } else {
-                sign = (camRight.z > 0) ? 1.0f : -1.0f;
-            }
+            float sign = AxisSign(camRight, glm::vec3(0.0f, 0.0f, 1.0f), glm::transpose(anchorRotBasis), constraints.local);
             translate.z += values.x * sign;
         }
         if (constraints.local) translate = anchorRotBasis * translate;
@@ -175,13 +183,106 @@ namespace Input {
         return true;
     }
 
+    bool _HandleRotate(AtelieState& state, int key) {
+        float& increment = state.editor.increment;
+        glm::vec2& values = state.editor.values;
+        TransformConstraints& constraints = state.editor.constraints;
+
+        switch (key) {
+            case GLFW_KEY_W:
+                values.y += increment;
+                break;
+            case GLFW_KEY_S:
+                values.y -= increment;
+                break;
+            case GLFW_KEY_A:
+                values.x -= increment;
+                break;
+            case GLFW_KEY_D:
+                values.x += increment;
+                break;
+            case GLFW_KEY_X:
+                constraints.x = !constraints.x;
+                constraints.y = false;
+                constraints.z = false;
+                break;
+            case GLFW_KEY_Y:
+                constraints.x = false;
+                constraints.y = !constraints.y;
+                constraints.z = false;
+                break;
+            case GLFW_KEY_Z:
+                constraints.x = false;
+                constraints.y = false;
+                constraints.z = !constraints.z;
+                break;
+            case GLFW_KEY_L:
+                constraints.local = !constraints.local;
+                break;
+            default: return false;
+        }
+
+        glm::quat rotate = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+        glm::vec3 camRight = GetCameraRight(state);
+        glm::vec3 camFront = GetCameraFront(state);
+        glm::mat3 anchorRotBasis = GetRotBasis(state.scene[state.cursor]);
+        float valueX = values.x * 50; // 0.1 * 10 * 5 = 5deg
+        float valueY = values.y * 50; // 0.1 * 10 * 5 = 5deg
+        if (!constraints.x && !constraints.y && !constraints.z && !constraints.local) {
+            rotate = glm::angleAxis(glm::radians(valueX), camFront);
+        }
+        if (constraints.x) {
+            glm::vec3 axis = glm::vec3(1.0f, 0.0f, 0.0f);
+            float sign = (glm::dot(axis, camFront) < 0) ? -1.0f : 1.0f;
+            rotate = glm::angleAxis(glm::radians(valueY * sign), axis);
+        }
+        if (constraints.y) {
+            glm::vec3 axis = glm::vec3(0.0f, 1.0f, 0.0f);
+            rotate = glm::angleAxis(glm::radians(valueX), axis);
+        }
+        if (constraints.z) {
+            glm::vec3 axis = glm::vec3(0.0f, 0.0f, 1.0f);
+            float sign = (glm::dot(axis, camFront) > 0) ? -1.0f : 1.0f;
+            rotate = glm::angleAxis(glm::radians(valueY * sign), axis);
+        }
+        if (constraints.local) {
+            glm::vec3 axis;
+            if (constraints.x) axis = anchorRotBasis[0];
+            else if (constraints.y) axis = anchorRotBasis[1];
+            else if (constraints.z) axis = anchorRotBasis[2];
+
+            float sign = (glm::dot(axis, camFront) > 0) ? -1.0f : 1.0f;
+            float value = (SteeperThan45(axis)) ? valueY : valueX;
+            float angle = value * sign;
+            glm::quat rot = glm::angleAxis(glm::radians(angle), axis);
+        }
+        state.editor.previewRotate = rotate;
+        return true;
+    }
+
+    void _CancelPreview(AtelieState& state) {
+        state.editor.constraints.x = false;
+        state.editor.constraints.y = false;
+        state.editor.constraints.z = false;
+        state.editor.constraints.local = false;
+        state.editor.previewTranslate = glm::vec3(0.0f);
+        state.editor.previewRotate = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+        state.editor.values = glm::vec2(0.0f);
+    }
+
     void _ApplyPreview(AtelieState& state) {
         for (int i = 0; i < state.scene.size(); i++) {
             if (i != state.cursor && !state.selected[i]) continue;
             state.scene[i].position += state.editor.previewTranslate;
-            // state.scene[i].rotation = glm::rotate(state.scene[i].rotation, state.editor.previewRotate);
-            // state.scene[i].scale = glm::scale(state.scene[i].scale, state.editor.previewScale);
+
+            glm::vec3 pivot = state.scene[state.cursor].position;
+            glm::vec3 offset = state.scene[i].position - pivot;
+            glm::quat rotation = state.scene[i].rotation;
+            rotation = state.editor.previewRotate * rotation;
+            state.scene[i].position = pivot + state.editor.previewRotate * offset;
+            state.scene[i].rotation = rotation;
         }
+        _CancelPreview(state);
     }
 
     void _KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
@@ -205,13 +306,8 @@ namespace Input {
             } else {
                 state->multiselect = false;
             }
+            _CancelPreview(*state);
             editor.tool = ActiveTool::None;
-            editor.constraints.x = false;
-            editor.constraints.y = false;
-            editor.constraints.z = false;
-            editor.constraints.local = false;
-            editor.previewTranslate = glm::vec3(0.0f);
-            editor.values = glm::vec2(0.0f);
             return;
         }
 
@@ -221,6 +317,7 @@ namespace Input {
         if (key == GLFW_KEY_ENTER && toolActive) {
             _ApplyPreview(*state);
             editor.previewTranslate = glm::vec3(0.0f);
+            editor.previewRotate = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
             commit:
             transcript.pending.push_back({key, mods});
@@ -230,12 +327,9 @@ namespace Input {
                 transcript.pending.end()
             );
             transcript.pending.clear();
+
             editor.tool = ActiveTool::None;
-            editor.values = glm::vec2(0.0f);
-            editor.constraints.x = false;
-            editor.constraints.y = false;
-            editor.constraints.z = false;
-            editor.constraints.local = false;
+
             return;
         }
 
@@ -255,6 +349,12 @@ namespace Input {
                     break;
                 case ActiveTool::Translate:
                     consumed = _HandleTranslate(*state, key);
+                    break;
+                case ActiveTool::Rotate:
+                    consumed = _HandleRotate(*state, key);
+                    break;
+                case ActiveTool::Scale:
+                    // consumed = _HandleScale(*state, key);
                     break;
             }
         }

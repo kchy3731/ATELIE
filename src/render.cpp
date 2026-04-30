@@ -115,7 +115,16 @@ namespace Render {
         float polRad = glm::radians(state.camera.polar);
         glm::vec3 up = glm::vec3(-sin(polRad) * sin(azRad), cos(polRad), -sin(polRad) * cos(azRad));
         glm::mat4 view = glm::lookAt(state.camera.position, glm::vec3(0.0f), up);
-        glm::mat4 projection = glm::perspective(glm::radians(40.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+        glm::mat4 projection; 
+        if (state.camera.orthographic) {
+            projection = glm::ortho(-state.camera.orthographicSize * 800.0f / 600.0f,
+                                    state.camera.orthographicSize * 800.0f / 600.0f,
+                                    -state.camera.orthographicSize,
+                                    state.camera.orthographicSize,
+                                    0.1f,
+                                    100.0f);
+        }
+        else projection = glm::perspective(glm::radians(40.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
         glEnable(GL_DEPTH_TEST);
 
@@ -130,10 +139,17 @@ namespace Render {
                 if (state.cursor == i || state.selected[i]) {
                     position = position + state.editor.previewTranslate;
                 }
+                glm::vec3 pivot;
+                glm::vec3 offset;
+                glm::quat rotation = obj.rotation;
+                if (state.cursor == i || state.selected[i]) {
+                    pivot = state.scene[state.cursor].position;
+                    offset = position - pivot;
+                    rotation = state.editor.previewRotate * rotation;
+                    position = pivot + state.editor.previewRotate * offset;
+                }
                 model = glm::translate(model, position);
-                model = glm::rotate(model, glm::radians(obj.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-                model = glm::rotate(model, glm::radians(obj.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-                model = glm::rotate(model, glm::radians(obj.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
+                model *= glm::mat4_cast(rotation);
                 model = glm::scale(model, obj.scale);
 
                 glm::mat4 m = model;
@@ -160,17 +176,23 @@ namespace Render {
             const Scene::Object& obj = state.scene[i];
             const Scene::MeshData& mesh = obj.meshData;
 
-            glm::mat4 model = glm::mat4(1.0f);
-
-            glm::vec3 position = obj.position;
-            if (state.cursor == i || state.selected[i]) position = position + state.editor.previewTranslate;
-            model = glm::translate(model, position);
-
-            model = glm::rotate(model, glm::radians(obj.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-            model = glm::rotate(model, glm::radians(obj.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-            model = glm::rotate(model, glm::radians(obj.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-
-            model = glm::scale(model, obj.scale);
+                glm::mat4 model = glm::mat4(1.0f);
+                glm::vec3 position = obj.position;
+                if (state.cursor == i || state.selected[i]) {
+                    position = position + state.editor.previewTranslate;
+                }
+                glm::vec3 pivot;
+                glm::vec3 offset;
+                glm::quat rotation = obj.rotation;
+                if (state.cursor == i || state.selected[i]) {
+                    pivot = state.scene[state.cursor].position;
+                    offset = position - pivot;
+                    rotation = state.editor.previewRotate * rotation;
+                    position = pivot + state.editor.previewRotate * offset;
+                }
+                model = glm::translate(model, position);
+                model *= glm::mat4_cast(rotation);
+                model = glm::scale(model, obj.scale);
 
             glm::mat4 m = model;
             glm::mat4 vp = projection * view;
