@@ -13,6 +13,10 @@ namespace Input {
 
     bool _HandleIdle(AtelieState& state, int key) {
         switch (key) {
+            case GLFW_KEY_Z: state.editor.wireframe = !state.editor.wireframe; break;
+            //---
+            case GLFW_KEY_TAB: state.editor.editMode = !state.editor.editMode; break;
+            //---
             case GLFW_KEY_W: state.camera.polar -= 10.0f; state.camera.orientation = CameraOrientation::Free; break;
             case GLFW_KEY_S: state.camera.polar += 10.0f; state.camera.orientation = CameraOrientation::Free; break;
             case GLFW_KEY_A: state.camera.azimuth += 10.0f; state.camera.orientation = CameraOrientation::Free; break;

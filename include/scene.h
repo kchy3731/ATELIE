@@ -23,6 +23,9 @@ namespace Scene {
         glm::vec3 position = glm::vec3(0.0f);
         glm::vec3 rotation = glm::vec3(0.0f);
         glm::vec3 scale = glm::vec3(1.0f);
+
+        int cursor = 0;
+        std::vector<bool> selected;
     };
 
     Object CreateSceneObject(BasicObjectType type);
