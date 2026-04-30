@@ -351,7 +351,7 @@ namespace Input {
             glm::vec3 scale = state.scene[i].scale;
             rotation = state.editor.previewRotate * rotation;
             scale = state.editor.previewScale * scale;
-            state.scene[i].position = pivot + (state.editor.previewScale * state.editor.previewRotate * offset);
+            state.scene[i].position = pivot + state.editor.previewScale * (state.editor.previewRotate * offset);
             state.scene[i].rotation = rotation;
             state.scene[i].scale = scale;
         }
@@ -390,8 +390,6 @@ namespace Input {
         // ======
         if (key == GLFW_KEY_ENTER && toolActive) {
             _ApplyPreview(*state);
-            editor.previewTranslate = glm::vec3(0.0f);
-            editor.previewRotate = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 
             commit:
             transcript.pending.push_back({key, mods});

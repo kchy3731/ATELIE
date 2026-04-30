@@ -146,7 +146,7 @@ namespace Render {
                 if (state.cursor == i || state.selected[i]) {
                     rotation = state.editor.previewRotate * rotation;
                     scale = state.editor.previewScale * scale;
-                    position = pivot + state.editor.previewRotate * state.editor.previewScale * offset;
+                    position = pivot + state.editor.previewScale * (state.editor.previewRotate * offset);
                 }
                 model = glm::translate(model, position);
                 model *= glm::mat4_cast(rotation);
@@ -188,7 +188,7 @@ namespace Render {
                 if (state.cursor == i || state.selected[i]) {
                     rotation = state.editor.previewRotate * rotation;
                     scale = state.editor.previewScale * scale;
-                    position = pivot + state.editor.previewRotate * state.editor.previewScale * offset;
+                    position = pivot + state.editor.previewScale * (state.editor.previewRotate * offset);
                 }
                 model = glm::translate(model, position);
                 model *= glm::mat4_cast(rotation);

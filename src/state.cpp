@@ -1,11 +1,7 @@
 #include "state.h"
 
 glm::mat3 GetRotBasis(const Scene::Object& obj) {
-    glm::mat4 r = glm::mat4(1.0f);
-    r = glm::rotate(r, glm::radians(obj.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    r = glm::rotate(r, glm::radians(obj.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-    r = glm::rotate(r, glm::radians(obj.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-    return glm::mat3(r);
+    return glm::mat3_cast(obj.rotation);
 }
 
 glm::vec3 GetCameraRight(const AtelieState& state) {
