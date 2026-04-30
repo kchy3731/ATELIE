@@ -254,9 +254,78 @@ namespace Input {
             float sign = (glm::dot(axis, camFront) > 0) ? -1.0f : 1.0f;
             float value = (SteeperThan45(axis)) ? valueY : valueX;
             float angle = value * sign;
-            glm::quat rot = glm::angleAxis(glm::radians(angle), axis);
+            rotate = glm::angleAxis(glm::radians(angle), axis);
         }
         state.editor.previewRotate = rotate;
+        return true;
+    }
+
+    bool _HandleScale(AtelieState& state, int key) {
+        float& increment = state.editor.increment;
+        glm::vec2& values = state.editor.values;
+        TransformConstraints& constraints = state.editor.constraints;
+
+        switch (key) {
+            case GLFW_KEY_W:
+                values.y += increment;
+                break;
+            case GLFW_KEY_S:
+                values.y -= increment;
+                break;
+            case GLFW_KEY_A:
+                values.x -= increment;
+                break;
+            case GLFW_KEY_D:
+                values.x += increment;
+                break;
+            case GLFW_KEY_X:
+                constraints.x = !constraints.x;
+                constraints.y = false;
+                constraints.z = false;
+                break;
+            case GLFW_KEY_Y:
+                constraints.x = false;
+                constraints.y = !constraints.y;
+                constraints.z = false;
+                break;
+            case GLFW_KEY_Z:
+                constraints.x = false;
+                constraints.y = false;
+                constraints.z = !constraints.z;
+                break;
+            case GLFW_KEY_L:
+                constraints.local = !constraints.local;
+                break;
+            default: return false;
+        }
+
+        glm::vec3 scale = glm::vec3(1.0f, 1.0f, 1.0f);
+        glm::vec3 camRight = GetCameraRight(state);
+        glm::vec3 camFront = GetCameraFront(state);
+        glm::mat3 anchorRotBasis = GetRotBasis(state.scene[state.cursor]);
+        if (!constraints.x && !constraints.y && !constraints.z && !constraints.local) {
+            scale.x += values.y;
+            scale.y += values.y;
+            scale.z += values.y;
+        }
+        if (constraints.x) {
+            scale.x += values.y;
+        }
+        if (constraints.y) {
+            scale.y += values.y;
+        }
+        if (constraints.z) {
+            scale.z += values.y;
+        }
+        if (constraints.local) {
+            glm::vec3 axis;
+            if (constraints.x) axis = anchorRotBasis[0];
+            else if (constraints.y) axis = anchorRotBasis[1];
+            else if (constraints.z) axis = anchorRotBasis[2];
+
+            scale += glm::normalize(axis) + values.y;
+        }
+        state.editor.previewScale = scale;
         return true;
     }
 
@@ -267,6 +336,7 @@ namespace Input {
         state.editor.constraints.local = false;
         state.editor.previewTranslate = glm::vec3(0.0f);
         state.editor.previewRotate = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+        state.editor.previewScale = glm::vec3(1.0f, 1.0f, 1.0f);
         state.editor.values = glm::vec2(0.0f);
     }
 
@@ -278,9 +348,12 @@ namespace Input {
             glm::vec3 pivot = state.scene[state.cursor].position;
             glm::vec3 offset = state.scene[i].position - pivot;
             glm::quat rotation = state.scene[i].rotation;
+            glm::vec3 scale = state.scene[i].scale;
             rotation = state.editor.previewRotate * rotation;
-            state.scene[i].position = pivot + state.editor.previewRotate * offset;
+            scale = state.editor.previewScale * scale;
+            state.scene[i].position = pivot + (state.editor.previewScale * state.editor.previewRotate * offset);
             state.scene[i].rotation = rotation;
+            state.scene[i].scale = scale;
         }
         _CancelPreview(state);
     }
@@ -305,6 +378,7 @@ namespace Input {
                 transcript.pending.clear();
             } else {
                 state->multiselect = false;
+                std::fill(state->selected.begin(), state->selected.end(), false);
             }
             _CancelPreview(*state);
             editor.tool = ActiveTool::None;
@@ -354,7 +428,7 @@ namespace Input {
                     consumed = _HandleRotate(*state, key);
                     break;
                 case ActiveTool::Scale:
-                    // consumed = _HandleScale(*state, key);
+                    consumed = _HandleScale(*state, key);
                     break;
             }
         }

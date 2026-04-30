@@ -139,18 +139,18 @@ namespace Render {
                 if (state.cursor == i || state.selected[i]) {
                     position = position + state.editor.previewTranslate;
                 }
-                glm::vec3 pivot;
-                glm::vec3 offset;
+                glm::vec3 pivot = state.scene[state.cursor].position;
+                glm::vec3 offset = position - pivot;
                 glm::quat rotation = obj.rotation;
+                glm::vec3 scale = obj.scale;
                 if (state.cursor == i || state.selected[i]) {
-                    pivot = state.scene[state.cursor].position;
-                    offset = position - pivot;
                     rotation = state.editor.previewRotate * rotation;
-                    position = pivot + state.editor.previewRotate * offset;
+                    scale = state.editor.previewScale * scale;
+                    position = pivot + state.editor.previewRotate * state.editor.previewScale * offset;
                 }
                 model = glm::translate(model, position);
                 model *= glm::mat4_cast(rotation);
-                model = glm::scale(model, obj.scale);
+                model = glm::scale(model, scale);
 
                 glm::mat4 m = model;
                 glm::mat4 vp = projection * view;
@@ -181,18 +181,18 @@ namespace Render {
                 if (state.cursor == i || state.selected[i]) {
                     position = position + state.editor.previewTranslate;
                 }
-                glm::vec3 pivot;
-                glm::vec3 offset;
+                glm::vec3 pivot = state.scene[state.cursor].position;
+                glm::vec3 offset = position - pivot;
                 glm::quat rotation = obj.rotation;
+                glm::vec3 scale = obj.scale;
                 if (state.cursor == i || state.selected[i]) {
-                    pivot = state.scene[state.cursor].position;
-                    offset = position - pivot;
                     rotation = state.editor.previewRotate * rotation;
-                    position = pivot + state.editor.previewRotate * offset;
+                    scale = state.editor.previewScale * scale;
+                    position = pivot + state.editor.previewRotate * state.editor.previewScale * offset;
                 }
                 model = glm::translate(model, position);
                 model *= glm::mat4_cast(rotation);
-                model = glm::scale(model, obj.scale);
+                model = glm::scale(model, scale);
 
             glm::mat4 m = model;
             glm::mat4 vp = projection * view;
