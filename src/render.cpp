@@ -121,10 +121,15 @@ namespace Render {
 
         if (!state.editor.wireframe) {
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-            for (const auto& obj : state.scene) {
+            for (int i = 0; i < state.scene.size(); i++) {
+                const Scene::Object& obj = state.scene[i];
                 const Scene::MeshData& mesh = obj.meshData;
 
                 glm::mat4 model = glm::mat4(1.0f);
+                if (state.cursor == i || state.selected[i]) {
+                    glm::vec3 translate = state.editor.previewTranslate;
+                    model = glm::translate(model, translate);
+                }
                 model = glm::translate(model, obj.position);
                 model = glm::rotate(model, glm::radians(obj.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
                 model = glm::rotate(model, glm::radians(obj.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -156,11 +161,16 @@ namespace Render {
             const Scene::MeshData& mesh = obj.meshData;
 
             glm::mat4 model = glm::mat4(1.0f);
+            if (state.cursor == i || state.selected[i]) {
+                glm::vec3 translate = state.editor.previewTranslate;
+                model = glm::translate(model, translate);
+            }
             model = glm::translate(model, obj.position);
             model = glm::rotate(model, glm::radians(obj.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
             model = glm::rotate(model, glm::radians(obj.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
             model = glm::rotate(model, glm::radians(obj.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
             model = glm::scale(model, obj.scale);
+
 
             glm::mat4 m = model;
             glm::mat4 vp = projection * view;

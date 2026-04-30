@@ -33,12 +33,25 @@ void _ProcessStatusString(AtelieState& state) {
     else statusString[57] = 'S';
     if (state.editor.editMode) strncpy(statusString + 46, "EDT", 3);
     else strncpy(statusString + 46, "OBJ", 3);
+    char temp;
     switch (state.editor.tool) {
         case (ActiveTool::None):
-            strncpy(statusString + 20, "    ", 4);
+            strncpy(statusString + 20, "---------", 9);
+            break;
+        case (ActiveTool::Increment):
+            temp = statusString[29];
+            sprintf(statusString + 20, "\\%1.1f-----", state.editor.increment);
+            statusString[29] = temp;
             break;
         case (ActiveTool::View):
-            strncpy(statusString + 20, "VIEW", 4);
+            strncpy(statusString + 20, "VIEW-----", 9);
+            break;
+        case (ActiveTool::Translate):
+            strncpy(statusString + 20, "MOVE-----", 9);
+            if (state.editor.constraints.x) statusString[25] = 'X'; else statusString[25] = '-';
+            if (state.editor.constraints.y) statusString[26] = 'Y'; else statusString[26] = '-';
+            if (state.editor.constraints.z) statusString[27] = 'Z'; else statusString[27] = '-';
+            if (state.editor.constraints.local) statusString[28] = 'L'; else statusString[28] = '-';
             break;
     }
 }
@@ -48,10 +61,10 @@ void UI::Process(AtelieState& state) {
     ImGui_ImplGlfw_NewFrame();
     ImGui::NewFrame();
 
-    ImGui::Begin("DEBUG");
-    ImGui::Text("ATELIE v0.0");
-    ImGui::Checkbox("Wireframe Mode", &state.editor.wireframe);
-    ImGui::End();
+    // ImGui::Begin("DEBUG");
+    // ImGui::Text("ATELIE v0.0");
+    // ImGui::Checkbox("Wireframe Mode", &state.editor.wireframe);
+    // ImGui::End();
 
     _ProcessStatusString(state);
     if (ImGui::BeginMainMenuBar()) {

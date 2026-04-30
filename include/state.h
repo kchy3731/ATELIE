@@ -14,7 +14,7 @@
 enum class ProjectionType { Perspective, Orthographic };
 enum class CameraOrientation { Free, SnappedX, SnappedY, SnappedZ };
 
-enum class ActiveTool { None, View, Translate /* Fill out! */};
+enum class ActiveTool { None, Increment, View, Translate /* Fill out! */};
 
 enum class MeshType { Cube, Triangle, Plane };
 enum class ObjectType { Static, Dynamic, Light };
@@ -48,8 +48,19 @@ struct CameraState {
     glm::vec3 position;
 };
 
+struct TransformConstraints {
+    bool x;
+    bool y;
+    bool z;
+    bool local;
+};
+
 struct EditorState {
+    TransformConstraints constraints;
     glm::vec3 previewTranslate = glm::vec3(0.0f);
+    glm::vec2 values = glm::vec2(0.0f);
+    
+    float increment = 0.1f;
 
     bool editMode = false;
     bool wireframe = false;
