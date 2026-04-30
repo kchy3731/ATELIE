@@ -1,9 +1,8 @@
-#include <glad/glad.h>
-#include <GLFW/glfw3.h>
-
 #include <iostream>
 
 #include "state.h"
+#include "primitives.h"
+#include "scene.h"
 
 #include "input.h"
 #include "render.h"
@@ -43,13 +42,16 @@ int main() {
     Render::Init();
     UI::Init(window);
 
-    // Populate default scene
-    SceneObject triObj;
-    triObj.name = "MyTriangle";
-    triObj.meshType = MeshType::Triangle;
-    triObj.objectType = ObjectType::Static;
-    triObj.position = glm::vec3(2.0f, 0.0f, 0.0f);
-    state.scene.push_back(triObj);
+    state.scene.push_back(Scene::CreateSceneObject(Scene::BasicObjectType::Cube));
+    state.scene.push_back(Scene::CreateSceneObject(Scene::BasicObjectType::Cube));
+    state.scene.push_back(Scene::CreateSceneObject(Scene::BasicObjectType::Cube));
+    state.scene[1].position = glm::vec3(0.5f, 0.5f, 0.0f);
+    state.scene[1].rotation = glm::vec3(0.0f, 45.0f, 0.0f);
+    state.scene[2].position = glm::vec3(1.5f, 0.0f, 0.0f);
+    state.selected.push_back(false);
+    state.selected.push_back(false);
+    state.selected.push_back(false);
+    state.cursor = 0;
 
     while (!glfwWindowShouldClose(window)) {
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);

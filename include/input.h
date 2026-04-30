@@ -1,8 +1,11 @@
 #pragma once
 
-#include <GLFW/glfw3.h>
+#include <algorithm>
+
+#include "imgui.h"
 
 #include "state.h"
+#include "render.h"
 
 namespace Input {
     void Init(GLFWwindow* window);

@@ -1,9 +1,15 @@
 #pragma once
 
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include <string>
 #include <vector>
 
 #include <glm.hpp>
+
+#include "primitives.h"
+#include "scene.h"
 
 enum class ProjectionType { Perspective, Orthographic };
 enum class CameraOrientation { Free, SnappedX, SnappedY, SnappedZ };
@@ -12,16 +18,6 @@ enum class ActiveTool { None, View, Translate /* Fill out! */};
 
 enum class MeshType { Cube, Triangle, Plane };
 enum class ObjectType { Static, Dynamic, Light };
-
-struct SceneObject {
-    std::string name;
-    MeshType meshType;
-    ObjectType objectType;
-
-    glm::vec3 position = glm::vec3(0.0f);
-    glm::vec3 rotation = glm::vec3(0.0f);
-    glm::vec3 scale = glm::vec3(1.0f);
-};
 
 struct Keystroke {
     int key;
@@ -54,8 +50,9 @@ struct CameraState {
 
 struct EditorState {
     glm::vec3 previewTranslate = glm::vec3(0.0f);
-    std::vector<int> selection;
 
+    bool editMode = false;
+    bool wireframe = false;
     ActiveTool tool = ActiveTool::None;
 };
 
@@ -65,10 +62,10 @@ struct AtelieState {
     Transcript transcript;
 
     // SCENE
-    std::vector<SceneObject> scene;
-
-    // RENDER
-    bool showWireframe = false;
+    unsigned int cursor = 0;
+    bool multiselect = false;
+    std::vector<bool> selected;
+    std::vector<Scene::Object> scene;
 
     UIState ui;
     CameraState camera;

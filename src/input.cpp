@@ -1,7 +1,4 @@
 #include "input.h"
-#include <imgui.h>
-#include "render.h"
-#include <algorithm>
 
 namespace Input {
     // private
@@ -20,16 +17,28 @@ namespace Input {
             case GLFW_KEY_S: state.camera.polar += 10.0f; state.camera.orientation = CameraOrientation::Free; break;
             case GLFW_KEY_A: state.camera.azimuth += 10.0f; state.camera.orientation = CameraOrientation::Free; break;
             case GLFW_KEY_D: state.camera.azimuth -= 10.0f; state.camera.orientation = CameraOrientation::Free; break;
+            case GLFW_KEY_EQUAL: state.camera.radius -= 0.25f; break;
+            case GLFW_KEY_MINUS: state.camera.radius += 0.25f; break;
+            // ---
+            case GLFW_KEY_SPACE:
+                if (!state.multiselect) {
+                    state.multiselect = true;
+                    std::fill(state.selected.begin(), state.selected.end(), false);
+                }
+                state.selected[state.cursor] = !state.selected[state.cursor];
+                break;
+            // ---
+            case GLFW_KEY_RIGHT_BRACKET: state.cursor = (state.cursor + 1) % state.selected.size(); break;
+            case GLFW_KEY_LEFT_BRACKET: state.cursor = (state.cursor == 0) ? state.selected.size() - 1 : state.cursor - 1; break;
             // ---
             case GLFW_KEY_V: state.editor.tool = ActiveTool::View; break;
-            // case GLFW_KEY_T: state.editor.tool = ActiveTool::Translate; break;
+            // case GLFW_KEY_G: state.editor.tool = ActiveTool::Translate; break;
             default: return false;
         }
         return true;
     }
 
     bool _HandleView(AtelieState& state, int key) {
-        state.editor.tool = ActiveTool::None;
         switch (key) {
             case GLFW_KEY_X:
                 if (state.camera.orientation == CameraOrientation::SnappedX) {
@@ -55,6 +64,7 @@ namespace Input {
         auto& transcript = state->transcript;
 
         bool toolActive = (editor.tool != ActiveTool::None);
+        bool record = true;
         bool consumed = true;
 
         // ======
@@ -64,8 +74,8 @@ namespace Input {
             if (toolActive) {
                 transcript.pending.clear();
                 editor.previewTranslate = glm::vec3(0.0f);
-                editor.tool = ActiveTool::None;
             }
+            state->multiselect = false;
             editor.tool = ActiveTool::None;
             return;
         }
@@ -117,42 +127,42 @@ namespace Input {
         }
     }
 
-    void _MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
-        if (action != GLFW_PRESS) return;
+    // void _MouseButtonCallback(GLFWwindow* window, int button, int action, int mods) {
+    //     if (action != GLFW_PRESS) return;
 
-        // Don't click through the UI
-        if (ImGui::GetIO().WantCaptureMouse) return;
+    //     // Don't click through the UI
+    //     if (ImGui::GetIO().WantCaptureMouse) return;
 
-        if (button == GLFW_MOUSE_BUTTON_LEFT) {
-            AtelieState* state = (AtelieState*) glfwGetWindowUserPointer(window);
-            double xpos, ypos;
-            glfwGetCursorPos(window, &xpos, &ypos);
+    //     if (button == GLFW_MOUSE_BUTTON_LEFT) {
+    //         AtelieState* state = (AtelieState*) glfwGetWindowUserPointer(window);
+    //         double xpos, ypos;
+    //         glfwGetCursorPos(window, &xpos, &ypos);
 
-            int pickedID = Render::PickObject(*state, xpos, ypos);
+    //         int pickedID = Render::PickObject(*state, xpos, ypos);
 
-            // Handle selection
-            if (!(mods & GLFW_MOD_CONTROL)) {
-                state->editor.selection.clear();
-            }
+    //         // Handle selection
+    //         if (!(mods & GLFW_MOD_CONTROL)) {
+    //             state->editor.selection.clear();
+    //         }
 
-            if (pickedID >= 0 && pickedID < state->scene.size()) {
-                auto it = std::find(state->editor.selection.begin(), state->editor.selection.end(), pickedID);
-                if (it != state->editor.selection.end()) {
-                    // Already selected, toggle off if Ctrl is held
-                    if (mods & GLFW_MOD_CONTROL) {
-                        state->editor.selection.erase(it);
-                    }
-                } else {
-                    state->editor.selection.push_back(pickedID);
-                }
-            }
-        }
-    }
+    //         if (pickedID >= 0 && pickedID < state->scene.size()) {
+    //             auto it = std::find(state->editor.selection.begin(), state->editor.selection.end(), pickedID);
+    //             if (it != state->editor.selection.end()) {
+    //                 // Already selected, toggle off if Ctrl is held
+    //                 if (mods & GLFW_MOD_CONTROL) {
+    //                     state->editor.selection.erase(it);
+    //                 }
+    //             } else {
+    //                 state->editor.selection.push_back(pickedID);
+    //             }
+    //         }
+    //     }
+    // }
 
     // public
     void Init(GLFWwindow* window) {
         glfwSetKeyCallback(window, _KeyCallback);
-        glfwSetMouseButtonCallback(window, _MouseButtonCallback);
+        // glfwSetMouseButtonCallback(window, _MouseButtonCallback);
     }
 
     void Process(GLFWwindow* window, AtelieState& state) {
