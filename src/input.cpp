@@ -23,12 +23,15 @@ namespace Input {
             case GLFW_KEY_Z: state.editor.wireframe = !state.editor.wireframe; break;
             case GLFW_KEY_O: state.camera.orthographic = !state.camera.orthographic; break;
             //---
-            case GLFW_KEY_TAB: state.editor.editMode = !state.editor.editMode; break;
+            case GLFW_KEY_TAB: 
+                if (state.editor.editMode) LeaveEditMode(state);
+                else EnterEditMode(state);
+                break;
             //---
-            case GLFW_KEY_W: state.camera.polar += 10.0f; state.camera.orientation = CameraOrientation::Free; break;
-            case GLFW_KEY_S: state.camera.polar -= 10.0f; state.camera.orientation = CameraOrientation::Free; break;
-            case GLFW_KEY_A: state.camera.azimuth -= 10.0f; state.camera.orientation = CameraOrientation::Free; break;
-            case GLFW_KEY_D: state.camera.azimuth += 10.0f; state.camera.orientation = CameraOrientation::Free; break;
+            case GLFW_KEY_W: state.camera.polar += 7.5f; state.camera.orientation = CameraOrientation::Free; break;
+            case GLFW_KEY_S: state.camera.polar -= 7.5f; state.camera.orientation = CameraOrientation::Free; break;
+            case GLFW_KEY_A: state.camera.azimuth -= 7.5f; state.camera.orientation = CameraOrientation::Free; break;
+            case GLFW_KEY_D: state.camera.azimuth += 7.5f; state.camera.orientation = CameraOrientation::Free; break;
             case GLFW_KEY_EQUAL: state.camera.radius -= 0.25f; state.camera.orthographicSize -= 0.25f; break;
             case GLFW_KEY_MINUS: state.camera.radius += 0.25f; state.camera.orthographicSize += 0.25f; break;
             // ---
@@ -40,7 +43,13 @@ namespace Input {
                 state.selected[state.cursor] = !state.selected[state.cursor];
                 break;
             // ---
-            case GLFW_KEY_RIGHT_BRACKET: state.cursor = (state.cursor + 1) % state.selected.size(); break;
+            case GLFW_KEY_RIGHT_BRACKET:
+                if (state.editor.editMode) {
+                    EditAdvanceCursor(state);
+                    break;
+                }
+                state.cursor = (state.cursor + 1) % state.selected.size();
+                break;
             case GLFW_KEY_LEFT_BRACKET: state.cursor = (state.cursor == 0) ? state.selected.size() - 1 : state.cursor - 1; break;
             // ---
             case GLFW_KEY_BACKSLASH: state.editor.tool = ActiveTool::Increment; break;

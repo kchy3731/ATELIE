@@ -27,6 +27,7 @@ namespace Scene {
 
         int cursor = 0;
         std::vector<bool> selected;
+        bool multiselect = false;
     };
 
     Object CreateSceneObject(BasicObjectType type);

@@ -46,7 +46,17 @@ int main() {
     state.selected.push_back(false);
     state.scene.push_back(Scene::CreateSceneObject(Scene::BasicObjectType::Cube));
     state.selected.push_back(false);
-    state.scene[1].position = glm::vec3(1.0f, 1.0f, 0.0f);
+    state.scene.push_back(Scene::CreateSceneObject(Scene::BasicObjectType::Cube));
+    state.selected.push_back(false);
+    state.scene.push_back(Scene::CreateSceneObject(Scene::BasicObjectType::Cube));
+    state.selected.push_back(false);
+    state.scene.push_back(Scene::CreateSceneObject(Scene::BasicObjectType::Cube));
+    state.selected.push_back(false);
+    state.scene[0].position = glm::vec3(0.0f, -1.0f, 0.0f);
+    state.scene[1].position = glm::vec3(1.0f, 0.0f, 0.0f);
+    state.scene[2].position = glm::vec3(-2.0f, 0.0f, 0.0f);
+    state.scene[3].position = glm::vec3(0.5f, 2.0f, 1.0f);
+    state.scene[4].position = glm::vec3(-0.7f, 1.5f, 0.0f);
 
     state.cursor = 0;
     state.editor.constraints.x = false;

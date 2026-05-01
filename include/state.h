@@ -39,7 +39,7 @@ struct UIState {
 // TODO: Move this to own header! Maybe!
 struct CameraState {
     float radius = 5.0f;
-    float azimuth = 50.0f;
+    float azimuth = 37.5f;
     float polar = 30.0f;
 
     bool orthographic = false;
@@ -67,6 +67,9 @@ struct EditorState {
     float increment = 0.1f;
 
     bool editMode = false;
+    bool dummyInitialised = false;
+    Scene::Object dummy;
+
     bool wireframe = false;
     ActiveTool tool = ActiveTool::None;
 };
@@ -91,3 +94,7 @@ glm::mat3 GetRotBasis(const Scene::Object& obj);
 glm::vec3 GetCameraRight(const AtelieState& state);
 glm::vec3 GetCameraFront(const AtelieState& state);
 glm::vec3 GetCameraUp(const AtelieState& state);
+
+void EnterEditMode(AtelieState& state);
+void LeaveEditMode(AtelieState& state);
+void EditAdvanceCursor(AtelieState& state);

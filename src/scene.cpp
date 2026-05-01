@@ -12,6 +12,8 @@ namespace Scene {
                 break;
         }
 
+        for (int i = 0; i < mesh.vertices.size(); i++) object.selected.push_back(false);
+
         glGenVertexArrays(1, &mesh.VAO);
         glGenBuffers(1, &mesh.VBO);
         glGenBuffers(1, &mesh.EBO);
@@ -36,9 +38,9 @@ namespace Scene {
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
         glEnableVertexAttribArray(0);
 
-        // no rgb anymore :(
-        // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void*)(3 * sizeof(float)));
-        // glEnableVertexAttribArray(1);
+        // colour
+        glVertexAttribPointer(1, 1, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)offsetof(Vertex, highlight));
+        glEnableVertexAttribArray(1);
 
         glBindVertexArray(0);
         return object;

@@ -6,25 +6,91 @@
 #include "scene.h"
 
 namespace Render {
-    
-    unsigned int shaderProgram;
-    unsigned int wireframeShaderProgram;
 
-    const char* vertexShaderSource = "#version 330 core\n"
+    struct ProgramUniforms {
+        int m, vp, depthNudge;
+        int previewTranslate, previewRotate, previewScale, pivot;
+        int cameraPos;
+        int wireColour;
+    };
+
+    unsigned int solidShaderProgram;
+    unsigned int wireframeShaderProgram;
+    unsigned int editSolidShaderProgram;
+    unsigned int editWireframeShaderProgram;
+
+    ProgramUniforms solidUniforms;
+    ProgramUniforms wireframeUniforms;
+    ProgramUniforms editSolidUniforms;
+    ProgramUniforms editWireframeUniforms;
+
+    void _CacheUniforms(ProgramUniforms& u, unsigned int program) {
+        u.m                = glGetUniformLocation(program, "M");
+        u.vp               = glGetUniformLocation(program, "VP");
+        u.depthNudge       = glGetUniformLocation(program, "uDepthNudge");
+        u.previewTranslate = glGetUniformLocation(program, "uPreviewTranslate");
+        u.previewRotate    = glGetUniformLocation(program, "uPreviewRotate");
+        u.previewScale     = glGetUniformLocation(program, "uPreviewScale");
+        u.pivot            = glGetUniformLocation(program, "uPivot");
+        u.cameraPos        = glGetUniformLocation(program, "uCameraPos");
+        u.wireColour       = glGetUniformLocation(program, "uWireColour");
+    }
+    
+    const char* simpleVertexShaderSource = "#version 330 core\n"
         "layout (location = 0) in vec3 aPos;\n"
 
         "uniform mat4 M;\n"
         "uniform mat4 VP;\n"
+        "uniform float uDepthNudge;\n"
 
         "out vec3 vWorldPos;\n"
 
         "void main() {\n"
-        "   vec4 world = M * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "   vec4 world = M * vec4(aPos, 1.0);\n"
         "   vWorldPos = world.xyz;\n"
-        "   gl_Position = VP * world;\n"
+        "   vec4 pos = VP * world;\n"
+        "   pos.z += uDepthNudge * pos.w;\n"
+        "   gl_Position = pos;\n"
         "}\0";
 
-    const char* fragmentShaderSource = "#version 330 core\n"
+    const char* editVertexShaderSource = "#version 330 core\n"
+        "layout (location = 0) in vec3 aPos;\n"
+        "layout (location = 1) in float aHighlight;\n"
+
+        "uniform mat4 M;\n"
+        "uniform mat4 VP;\n"
+        "uniform float uDepthNudge;\n"
+
+        "uniform vec3 uPreviewTranslate;\n"
+        "uniform mat4 uPreviewRotate;\n"
+        "uniform vec3 uPreviewScale;\n"
+        "uniform vec3 uPivot;\n"
+
+        "out vec3 vWorldPos;\n"
+        "out vec3 col;\n"
+        "out float vHighlight;\n"
+
+        "void main() {\n"
+        "   vec3 p = aPos;\n"
+        "   col = vec3(0.0, 0.0, 0.0);\n"
+        "   if (aHighlight > 0.5) {\n"
+        "       if (aHighlight > 1.5) col = vec3(1.0, 0.5, 0.0);\n"
+        "       else col = vec3(0.65, 0.35, 0.08);"
+        "       p = p - uPivot;\n"
+        "       p = (uPreviewRotate * vec4(p, 1.0)).xyz;\n"
+        "       p = p * uPreviewScale;\n"
+        "       p = p + uPivot;\n"
+        "       p = p + uPreviewTranslate;\n"
+        "   }\n"
+        "   vec4 world = M * vec4(p, 1.0);\n"
+        "   vWorldPos = world.xyz;\n"
+        "   vec4 pos = VP * world;\n"
+        "   pos.z += uDepthNudge * pos.w;\n"
+        "   gl_Position = pos;\n"
+        "   vHighlight = aHighlight;\n"
+        "}\0";
+
+    const char* solidFragmentShaderSource = "#version 330 core\n"
         "in vec3 vWorldPos;\n"
         "out vec4 FragColor;\n"
 
@@ -38,32 +104,27 @@ namespace Render {
         "    FragColor = vec4(col, 1.0);\n"
         "}\n\0";
 
-    const char* wireframeVertexShaderSource = "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n"
-        "uniform mat4 M;\n"
-        "uniform mat4 VP;\n"
-
-        "void main() {\n"
-        "   vec4 pos = VP * M * vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-        "   pos.z -= 0.0001 * pos.w;"
-        "   gl_Position = pos;\n"
-        "}\n\0";
-
     const char* wireframeFragmentShaderSource = "#version 330 core\n"
+        "in vec3 col;\n"
         "out vec4 FragColor;\n"
         "uniform vec3 uWireColour;\n"
-        
+
         "void main() {\n"
         "   FragColor = vec4(uWireColour, 1.0);\n"
         "}\n\0";
 
-    int mLocation;
-    int vpLocation;
-    int uCameraPosLocation;
+    const char* editWireframeFragmentShaderSource = "#version 330 core\n"
+        "in float vHighlight;\n"
+        "out vec4 FragColor;\n"
 
-    int w_mLocation;
-    int w_vpLocation;
-    int w_uWireColourLocation;
+        "void main() {\n"
+        "   vec3 col = vec3(0.0, 0.0, 0.0);\n"
+        "   if (vHighlight > 1.5) col = vec3(1.0, 0.5, 0.0);\n"
+        "   else if (vHighlight > 0.5) col = vec3(0.65, 0.35, 0.08);\n"
+        "   FragColor = vec4(col, 1.0);\n"
+        "}\n\0";
+
+    // ---
 
     unsigned int gridVAO, gridVBO;
     int numGridVertices;
@@ -71,45 +132,58 @@ namespace Render {
     unsigned int lineVAO, lineVBO;
 
     void Init() {
-        unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
-        glCompileShader(vertexShader);
+        unsigned int simpleVertexShader = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(simpleVertexShader, 1, &simpleVertexShaderSource, NULL);
+        glCompileShader(simpleVertexShader);
 
-        unsigned int fragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
-        glShaderSource(fragmentShader, 1, &fragmentShaderSource, NULL);
-        glCompileShader(fragmentShader);
+        unsigned int editVertexShader = glCreateShader(GL_VERTEX_SHADER);
+        glShaderSource(editVertexShader, 1, &editVertexShaderSource, NULL);
+        glCompileShader(editVertexShader);
 
-        shaderProgram = glCreateProgram();
-        glAttachShader(shaderProgram, vertexShader);
-        glAttachShader(shaderProgram, fragmentShader);
-        glLinkProgram(shaderProgram);
-
-        glDeleteShader(vertexShader);
-        glDeleteShader(fragmentShader);
-
-        unsigned int wireframeVertexShader = glCreateShader(GL_VERTEX_SHADER);
-        glShaderSource(wireframeVertexShader, 1, &wireframeVertexShaderSource, NULL);
-        glCompileShader(wireframeVertexShader);
+        unsigned int solidFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(solidFragmentShader, 1, &solidFragmentShaderSource, NULL);
+        glCompileShader(solidFragmentShader);
 
         unsigned int wireframeFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
         glShaderSource(wireframeFragmentShader, 1, &wireframeFragmentShaderSource, NULL);
         glCompileShader(wireframeFragmentShader);
 
+        unsigned int editWireframeFragmentShader = glCreateShader(GL_FRAGMENT_SHADER);
+        glShaderSource(editWireframeFragmentShader, 1, &editWireframeFragmentShaderSource, NULL);
+        glCompileShader(editWireframeFragmentShader);
+
+        solidShaderProgram = glCreateProgram();
+        glAttachShader(solidShaderProgram, simpleVertexShader);
+        glAttachShader(solidShaderProgram, solidFragmentShader);
+        glLinkProgram(solidShaderProgram);
+
         wireframeShaderProgram = glCreateProgram();
-        glAttachShader(wireframeShaderProgram, wireframeVertexShader);
+        glAttachShader(wireframeShaderProgram, simpleVertexShader);
         glAttachShader(wireframeShaderProgram, wireframeFragmentShader);
         glLinkProgram(wireframeShaderProgram);
 
-        glDeleteShader(wireframeVertexShader);
+        editSolidShaderProgram = glCreateProgram();
+        glAttachShader(editSolidShaderProgram, editVertexShader);
+        glAttachShader(editSolidShaderProgram, solidFragmentShader);
+        glLinkProgram(editSolidShaderProgram);
+
+        editWireframeShaderProgram = glCreateProgram();
+        glAttachShader(editWireframeShaderProgram, editVertexShader);
+        glAttachShader(editWireframeShaderProgram, editWireframeFragmentShader);
+        glLinkProgram(editWireframeShaderProgram);
+
+        glDeleteShader(simpleVertexShader);
+        glDeleteShader(editVertexShader);
+        glDeleteShader(solidFragmentShader);
         glDeleteShader(wireframeFragmentShader);
+        glDeleteShader(editWireframeFragmentShader);
 
-        mLocation = glGetUniformLocation(shaderProgram, "M");
-        vpLocation = glGetUniformLocation(shaderProgram, "VP");
-        uCameraPosLocation = glGetUniformLocation(shaderProgram, "uCameraPos");
+        _CacheUniforms(solidUniforms, solidShaderProgram);
+        _CacheUniforms(wireframeUniforms, wireframeShaderProgram);
+        _CacheUniforms(editSolidUniforms, editSolidShaderProgram);
+        _CacheUniforms(editWireframeUniforms, editWireframeShaderProgram);
 
-        w_mLocation = glGetUniformLocation(wireframeShaderProgram, "M");
-        w_vpLocation = glGetUniformLocation(wireframeShaderProgram, "VP");
-        w_uWireColourLocation = glGetUniformLocation(wireframeShaderProgram, "uWireColour");
+        // ---
 
         std::vector<glm::vec3> gridVerts;
         float size = 50.0f;
@@ -141,9 +215,7 @@ namespace Render {
         glBindVertexArray(0);
     }
 
-    void Draw(const AtelieState& state) {
-        glUseProgram(shaderProgram);
-
+    void _DrawObjectMode(const AtelieState& state) {
         float azRad = glm::radians(state.camera.azimuth);
         float polRad = glm::radians(state.camera.polar);
         glm::vec3 up = glm::vec3(-sin(polRad) * sin(azRad), cos(polRad), -sin(polRad) * cos(azRad));
@@ -159,10 +231,12 @@ namespace Render {
         }
         else projection = glm::perspective(glm::radians(40.0f), 800.0f / 600.0f, 0.1f, 100.0f);
 
-        glEnable(GL_DEPTH_TEST);
 
         if (!state.editor.wireframe) {
+            glUseProgram(solidShaderProgram);
             glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glEnable(GL_DEPTH_TEST);
+
             for (int i = 0; i < state.scene.size(); i++) {
                 const Scene::Object& obj = state.scene[i];
                 const Scene::MeshData& mesh = obj.meshData;
@@ -187,9 +261,10 @@ namespace Render {
 
                 glm::mat4 m = model;
                 glm::mat4 vp = projection * view;
-                glUniformMatrix4fv(mLocation, 1, GL_FALSE, &m[0][0]);
-                glUniformMatrix4fv(vpLocation, 1, GL_FALSE, &vp[0][0]);
-                glUniform3fv(uCameraPosLocation, 1, &state.camera.position[0]);
+                glUniformMatrix4fv(solidUniforms.m, 1, GL_FALSE, &m[0][0]);
+                glUniformMatrix4fv(solidUniforms.vp, 1, GL_FALSE, &vp[0][0]);
+                glUniform1f(solidUniforms.depthNudge, 0.0f);
+                glUniform3fv(solidUniforms.cameraPos, 1, &state.camera.position[0]);
 
                 glBindVertexArray(mesh.VAO);
                 glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
@@ -198,19 +273,17 @@ namespace Render {
         }
         
         if (state.editor.wireframe) glDisable(GL_DEPTH_TEST);
-        // this caused a fun fun fun memleak1!!!!!
-        // else { glEnable(GL_POLYGON_OFFSET_LINE); glPolygonOffset(-1.0f, -1.0f); }
 
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
         glUseProgram(wireframeShaderProgram);
 
         glm::mat4 vp = projection * view;
         glm::mat4 id(1.0f);
-        glm::vec3 gridCol(0.6f, 0.6f, 0.6f);
-        glUniformMatrix4fv(w_mLocation, 1, GL_FALSE, &id[0][0]);
-        glUniformMatrix4fv(w_vpLocation, 1, GL_FALSE, &vp[0][0]);
-        glUniform3fv(w_uWireColourLocation, 1, &gridCol[0]);
+        glm::vec3 gridCol(0.2f, 0.2f, 0.2f);
+        glUniformMatrix4fv(wireframeUniforms.m, 1, GL_FALSE, &id[0][0]);
+        glUniformMatrix4fv(wireframeUniforms.vp, 1, GL_FALSE, &vp[0][0]);
+        glUniform3fv(wireframeUniforms.wireColour, 1, &gridCol[0]);
+        glUniform1f(wireframeUniforms.depthNudge, 0.0f);
 
         glBindVertexArray(gridVAO);
         glDrawArrays(GL_LINES, 0, numGridVertices);
@@ -246,9 +319,10 @@ namespace Render {
             else if (state.selected[i]) colour = glm::vec3(0.65f, 0.35f, 0.08f);
             else colour = glm::vec3(0.0f, 0.0f, 0.0f);
 
-            glUniformMatrix4fv(w_mLocation, 1, GL_FALSE, &m[0][0]);
-            glUniformMatrix4fv(w_vpLocation, 1, GL_FALSE, &vp[0][0]);
-            glUniform3fv(w_uWireColourLocation, 1, &colour[0]);
+            glUniformMatrix4fv(wireframeUniforms.m, 1, GL_FALSE, &m[0][0]);
+            glUniformMatrix4fv(wireframeUniforms.vp, 1, GL_FALSE, &vp[0][0]);
+            glUniform3fv(wireframeUniforms.wireColour, 1, &colour[0]);
+            glUniform1f(wireframeUniforms.depthNudge, -0.0001f);
 
             glBindVertexArray(mesh.VAO);
             glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
@@ -256,6 +330,7 @@ namespace Render {
         }
 
         if (state.scene.size() > 0 && (state.editor.constraints.x || state.editor.constraints.y || state.editor.constraints.z)) {
+            glDisable(GL_DEPTH_TEST);
             auto drawAxis = [&](bool active, int axisIdx, glm::vec3 color) {
                 if (!active) return;
                 glm::vec3 dir(0.0f);
@@ -274,8 +349,9 @@ namespace Render {
                 glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(pts), pts);
                 
                 glm::mat4 idMat(1.0f);
-                glUniformMatrix4fv(w_mLocation, 1, GL_FALSE, &idMat[0][0]);
-                glUniform3fv(w_uWireColourLocation, 1, &color[0]);
+                glUniformMatrix4fv(wireframeUniforms.m, 1, GL_FALSE, &idMat[0][0]);
+                glUniform3fv(wireframeUniforms.wireColour, 1, &color[0]);
+                glUniform1f(wireframeUniforms.depthNudge, 0.0f);
                 glBindVertexArray(lineVAO);
                 glDrawArrays(GL_LINES, 0, 2);
             };
@@ -283,14 +359,129 @@ namespace Render {
             drawAxis(state.editor.constraints.x, 0, glm::vec3(1.0f, 0.2f, 0.2f));
             drawAxis(state.editor.constraints.y, 1, glm::vec3(0.2f, 1.0f, 0.2f));
             drawAxis(state.editor.constraints.z, 2, glm::vec3(0.2f, 0.2f, 1.0f));
+            glEnable(GL_DEPTH_TEST);
             glBindVertexArray(0);
         }
+    }
 
-        // if (!state.editor.wireframe) glDisable(GL_POLYGON_OFFSET_LINE);
+    void _DrawEditMode(const AtelieState& state) {
+        float azRad = glm::radians(state.camera.azimuth);
+        float polRad = glm::radians(state.camera.polar);
+        glm::vec3 up = glm::vec3(-sin(polRad) * sin(azRad), cos(polRad), -sin(polRad) * cos(azRad));
+        glm::mat4 view = glm::lookAt(state.camera.position, glm::vec3(0.0f), up);
+        glm::mat4 projection; 
+        if (state.camera.orthographic) {
+            projection = glm::ortho(-state.camera.orthographicSize * 800.0f / 600.0f,
+                                    state.camera.orthographicSize * 800.0f / 600.0f,
+                                    -state.camera.orthographicSize,
+                                    state.camera.orthographicSize,
+                                    0.1f,
+                                    100.0f);
+        }
+        else projection = glm::perspective(glm::radians(40.0f), 800.0f / 600.0f, 0.1f, 100.0f);
+
+        if (!state.editor.wireframe) {
+            glUseProgram(solidShaderProgram);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+            glEnable(GL_DEPTH_TEST);
+
+            for (int i = 0; i < state.scene.size(); i++) {
+                const Scene::Object& obj = state.scene[i];
+                const Scene::MeshData& mesh = obj.meshData;
+
+                glm::mat4 model = glm::mat4(1.0f);
+                glm::vec3 position = obj.position;
+                glm::quat rotation = obj.rotation;
+                glm::vec3 scale = obj.scale;
+                model = glm::translate(model, position);
+                model *= glm::mat4_cast(rotation);
+                model = glm::scale(model, scale);
+
+                glm::mat4 m = model;
+                glm::mat4 vp = projection * view;
+                glUniformMatrix4fv(solidUniforms.m, 1, GL_FALSE, &m[0][0]);
+                glUniformMatrix4fv(solidUniforms.vp, 1, GL_FALSE, &vp[0][0]);
+                glUniform3fv(solidUniforms.cameraPos, 1, &state.camera.position[0]);
+
+                glBindVertexArray(mesh.VAO);
+                glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
+            }
+        }
+
+        if (state.editor.wireframe) {
+            glUseProgram(wireframeShaderProgram);
+            glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+            glDisable(GL_DEPTH_TEST);
+
+            for (int i = 0; i < state.scene.size(); i++) {
+                if (i == state.cursor) continue;
+                const Scene::Object& obj = state.scene[i];
+                const Scene::MeshData& mesh = obj.meshData;
+
+                glm::mat4 model = glm::mat4(1.0f);
+                glm::vec3 position = obj.position;
+                glm::quat rotation = obj.rotation;
+                glm::vec3 scale = obj.scale;
+                model = glm::translate(model, position);
+                model *= glm::mat4_cast(rotation);
+                model = glm::scale(model, scale);
+
+                glm::mat4 m = model;
+                glm::mat4 vp = projection * view;
+                glm::vec3 colour = glm::vec3(0.02f, 0.05f, 0.02f);
+                glUniformMatrix4fv(wireframeUniforms.m, 1, GL_FALSE, &m[0][0]);
+                glUniformMatrix4fv(wireframeUniforms.vp, 1, GL_FALSE, &vp[0][0]);
+                glUniform3fv(wireframeUniforms.wireColour, 1, &colour[0]);
+
+                glBindVertexArray(mesh.VAO);
+                glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+                glBindVertexArray(0);
+            }
+        }
+
+        glUseProgram(editWireframeShaderProgram);
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+        glPointSize(8.0f);
+
+        const Scene::Object& obj = state.scene[state.cursor];
+        const Scene::MeshData& mesh = obj.meshData;
+
+        glm::mat4 model = glm::mat4(1.0f);
+        glm::vec3 position = obj.position;
+        glm::quat rotation = obj.rotation;
+        glm::vec3 scale = obj.scale;
+        model = glm::translate(model, position);
+        model *= glm::mat4_cast(rotation);
+        model = glm::scale(model, scale);
+
+        glm::mat4 id = glm::mat4(1.0f);
+        glm::mat4 m = model;
+        glm::mat4 vp = projection * view;
+        glUniformMatrix4fv(editWireframeUniforms.m, 1, GL_FALSE, &m[0][0]);
+        glUniformMatrix4fv(editWireframeUniforms.vp, 1, GL_FALSE, &vp[0][0]);
+        glUniform1f(editWireframeUniforms.depthNudge, -0.0001f);
+        glUniform3fv(editWireframeUniforms.previewTranslate, 1, &state.editor.previewTranslate[0]);
+        glm::mat4 previewRotMap = glm::mat4_cast(state.editor.previewRotate);
+        glUniformMatrix4fv(editWireframeUniforms.previewRotate, 1, GL_FALSE, &previewRotMap[0][0]);
+        glUniform3fv(editWireframeUniforms.previewScale, 1, &state.editor.previewScale[0]);
+        glUniformMatrix4fv(editWireframeUniforms.pivot, 1, GL_FALSE, &id[0][0]);
+
+        glBindVertexArray(mesh.VAO);
+        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+        glDrawElements(GL_POINTS, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+        glBindVertexArray(0);
+    }
+
+    void Draw(const AtelieState& state) {
+        if (state.editor.editMode) _DrawEditMode(state);
+        else _DrawObjectMode(state);
     }
     
     void Cleanup() {
-        glDeleteProgram(shaderProgram);
+        glDeleteProgram(solidShaderProgram);
         glDeleteProgram(wireframeShaderProgram);
+        glDeleteProgram(editSolidShaderProgram);
+        glDeleteProgram(editWireframeShaderProgram);
     }
 }

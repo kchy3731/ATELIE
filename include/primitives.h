@@ -5,6 +5,7 @@
 
 struct Vertex {
     glm::vec3 position;
+    float highlight = 0.0f;
 };
 
 namespace Primitives {

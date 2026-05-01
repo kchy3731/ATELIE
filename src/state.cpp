@@ -20,3 +20,36 @@ glm::vec3 GetCameraUp(const AtelieState& state) {
     float pol = glm::radians(state.camera.polar);
     return glm::vec3(-sin(pol) * sin(az), cos(pol), -sin(pol) * cos(az));
 }
+
+void EnterEditMode(AtelieState& state) {
+    state.editor.editMode = true;
+}
+
+void LeaveEditMode(AtelieState& state) {
+    state.editor.editMode = false;
+}
+
+void _UpdateVBO(Scene::Object& obj) {
+    Scene::MeshData& mesh = obj.meshData;
+    for (int i = 0; i < mesh.vertices.size(); i++) {
+        if (i == obj.cursor) mesh.vertices[i].highlight = 2.0f; 
+        else if (obj.selected[i]) mesh.vertices[i].highlight = 1.0f;
+        else mesh.vertices[i].highlight = 0.0f;
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, mesh.VBO);
+    glBufferSubData(GL_ARRAY_BUFFER, 0,
+                    mesh.vertices.size() * sizeof(Vertex),
+                    mesh.vertices.data()); 
+}
+
+void EditAdvanceCursor(AtelieState& state) {
+    Scene::Object& obj = state.scene[state.cursor];
+    obj.cursor = (obj.cursor + 1) % obj.meshData.vertices.size();
+    _UpdateVBO(obj);
+}
+
+void EditSelect(AtelieState& state) {
+    Scene::Object& obj = state.scene[state.cursor];
+    obj.selected[obj.cursor] = true;
+}
