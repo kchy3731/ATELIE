@@ -178,7 +178,7 @@ namespace Input {
             float sign = AxisSign(camRight, glm::vec3(0.0f, 0.0f, 1.0f), glm::transpose(anchorRotBasis), constraints.local);
             translate.z += values.x * sign;
         }
-        if (constraints.local) translate = anchorRotBasis * translate;
+        if (constraints.local && (constraints.x || constraints.y || constraints.z)) translate = anchorRotBasis * translate;
         state.editor.previewTranslate = translate;
         return true;
     }
@@ -245,8 +245,8 @@ namespace Input {
             float sign = (glm::dot(axis, camFront) > 0) ? -1.0f : 1.0f;
             rotate = glm::angleAxis(glm::radians(valueY * sign), axis);
         }
-        if (constraints.local) {
-            glm::vec3 axis;
+        if (constraints.local && (constraints.x || constraints.y || constraints.z)) {
+            glm::vec3 axis = glm::vec3(1.0f, 0.0f, 0.0f);
             if (constraints.x) axis = anchorRotBasis[0];
             else if (constraints.y) axis = anchorRotBasis[1];
             else if (constraints.z) axis = anchorRotBasis[2];
@@ -303,7 +303,7 @@ namespace Input {
         glm::vec3 camRight = GetCameraRight(state);
         glm::vec3 camFront = GetCameraFront(state);
         glm::mat3 anchorRotBasis = GetRotBasis(state.scene[state.cursor]);
-        if (!constraints.x && !constraints.y && !constraints.z && !constraints.local) {
+        if (!constraints.x && !constraints.y && !constraints.z) {
             scale.x += values.y;
             scale.y += values.y;
             scale.z += values.y;

@@ -65,6 +65,11 @@ namespace Render {
     int w_vpLocation;
     int w_uWireColourLocation;
 
+    unsigned int gridVAO, gridVBO;
+    int numGridVertices;
+
+    unsigned int lineVAO, lineVBO;
+
     void Init() {
         unsigned int vertexShader = glCreateShader(GL_VERTEX_SHADER);
         glShaderSource(vertexShader, 1, &vertexShaderSource, NULL);
@@ -106,6 +111,34 @@ namespace Render {
         w_vpLocation = glGetUniformLocation(wireframeShaderProgram, "VP");
         w_uWireColourLocation = glGetUniformLocation(wireframeShaderProgram, "uWireColour");
 
+        std::vector<glm::vec3> gridVerts;
+        float size = 50.0f;
+        float step = 0.5f;
+        for (float i = -size; i <= size; i += step) {
+            gridVerts.push_back(glm::vec3(i, 0.0f, -size));
+            gridVerts.push_back(glm::vec3(i, 0.0f, size));
+            gridVerts.push_back(glm::vec3(-size, 0.0f, i));
+            gridVerts.push_back(glm::vec3(size, 0.0f, i));
+        }
+        numGridVertices = gridVerts.size();
+
+        glGenVertexArrays(1, &gridVAO);
+        glGenBuffers(1, &gridVBO);
+        glBindVertexArray(gridVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, gridVBO);
+        glBufferData(GL_ARRAY_BUFFER, gridVerts.size() * sizeof(glm::vec3), gridVerts.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+        glEnableVertexAttribArray(0);
+        glBindVertexArray(0);
+
+        glGenVertexArrays(1, &lineVAO);
+        glGenBuffers(1, &lineVBO);
+        glBindVertexArray(lineVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+        glBufferData(GL_ARRAY_BUFFER, 2 * sizeof(glm::vec3), nullptr, GL_DYNAMIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
+        glEnableVertexAttribArray(0);
+        glBindVertexArray(0);
     }
 
     void Draw(const AtelieState& state) {
@@ -172,6 +205,17 @@ namespace Render {
 
         glUseProgram(wireframeShaderProgram);
 
+        glm::mat4 vp = projection * view;
+        glm::mat4 id(1.0f);
+        glm::vec3 gridCol(0.6f, 0.6f, 0.6f);
+        glUniformMatrix4fv(w_mLocation, 1, GL_FALSE, &id[0][0]);
+        glUniformMatrix4fv(w_vpLocation, 1, GL_FALSE, &vp[0][0]);
+        glUniform3fv(w_uWireColourLocation, 1, &gridCol[0]);
+
+        glBindVertexArray(gridVAO);
+        glDrawArrays(GL_LINES, 0, numGridVertices);
+        glBindVertexArray(0);
+
         for (int i = 0; i < state.scene.size(); i++) {
             const Scene::Object& obj = state.scene[i];
             const Scene::MeshData& mesh = obj.meshData;
@@ -208,6 +252,37 @@ namespace Render {
 
             glBindVertexArray(mesh.VAO);
             glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
+            glBindVertexArray(0);
+        }
+
+        if (state.scene.size() > 0 && (state.editor.constraints.x || state.editor.constraints.y || state.editor.constraints.z)) {
+            auto drawAxis = [&](bool active, int axisIdx, glm::vec3 color) {
+                if (!active) return;
+                glm::vec3 dir(0.0f);
+                if (state.editor.constraints.local) {
+                    glm::mat3 anchorRotBasis = GetRotBasis(state.scene[state.cursor]);
+                    dir = anchorRotBasis[axisIdx];
+                } else {
+                    dir[axisIdx] = 1.0f;
+                }
+                glm::vec3 pivot = state.scene[state.cursor].position;
+                glm::vec3 p1 = pivot - dir * 1000.0f;
+                glm::vec3 p2 = pivot + dir * 1000.0f;
+                glm::vec3 pts[2] = {p1, p2};
+                
+                glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+                glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(pts), pts);
+                
+                glm::mat4 idMat(1.0f);
+                glUniformMatrix4fv(w_mLocation, 1, GL_FALSE, &idMat[0][0]);
+                glUniform3fv(w_uWireColourLocation, 1, &color[0]);
+                glBindVertexArray(lineVAO);
+                glDrawArrays(GL_LINES, 0, 2);
+            };
+
+            drawAxis(state.editor.constraints.x, 0, glm::vec3(1.0f, 0.2f, 0.2f));
+            drawAxis(state.editor.constraints.y, 1, glm::vec3(0.2f, 1.0f, 0.2f));
+            drawAxis(state.editor.constraints.z, 2, glm::vec3(0.2f, 0.2f, 1.0f));
             glBindVertexArray(0);
         }
 
