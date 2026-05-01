@@ -5,6 +5,8 @@
 
 namespace Input {
     // private
+    void _CancelPreview(AtelieState& state);
+
     void _UpdateCameraPosition(AtelieState& state) {
         state.camera.polar = (state.camera.polar > 90.0f) ? 90.0f : state.camera.polar;
         state.camera.polar = (state.camera.polar < -90.0f) ? -90.0f : state.camera.polar;
@@ -49,6 +51,14 @@ namespace Input {
             case GLFW_KEY_G: state.editor.tool = ActiveTool::Translate; break;
             case GLFW_KEY_R: state.editor.tool = ActiveTool::Rotate; break;
             case GLFW_KEY_M: state.editor.tool = ActiveTool::Scale; break;
+            case GLFW_KEY_P: 
+                state.editor.tool = ActiveTool::Spawn; 
+                state.multiselect = false;
+                std::fill(state.selected.begin(), state.selected.end(), false);
+                break;
+            case GLFW_KEY_U: 
+                state.editor.tool = ActiveTool::Delete; 
+                break;
             default: return false;
         }
         return true;
@@ -329,6 +339,42 @@ namespace Input {
         return true;
     }
 
+    bool _HandleSpawn(AtelieState& state, int key) {
+        float& increment = state.editor.increment;
+        glm::vec2& values = state.editor.values;
+
+        switch (key) {
+            case GLFW_KEY_W: values.y += increment; break;
+            case GLFW_KEY_S: values.y -= increment; break;
+            case GLFW_KEY_A: values.x -= increment; break;
+            case GLFW_KEY_D: values.x += increment; break;
+            case GLFW_KEY_C: {
+                state.editor.spawnType = Scene::BasicObjectType::Cube;
+                state.editor.spawnActive = true;
+                return true;
+            }
+            case GLFW_KEY_T: {
+                state.editor.spawnType = Scene::BasicObjectType::Cylinder;
+                state.editor.spawnActive = true;
+                return true;
+            }
+            default: return false;
+        }
+
+        glm::vec3 camRight = GetCameraRight(state);
+        glm::vec3 camUp = GetCameraUp(state);
+        state.editor.previewTranslate = camRight * values.x + camUp * values.y;
+
+        return true;
+    }
+
+    bool _HandleDelete(AtelieState& state, int key) {
+        // Just return true to consume keys while in this mode
+        // if we want WASD to work for changing selection while in Delete mode, 
+        // we could call _HandleIdle or something, but let's keep it simple.
+        return true;
+    }
+
     void _CancelPreview(AtelieState& state) {
         state.editor.constraints.x = false;
         state.editor.constraints.y = false;
@@ -338,9 +384,47 @@ namespace Input {
         state.editor.previewRotate = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
         state.editor.previewScale = glm::vec3(1.0f, 1.0f, 1.0f);
         state.editor.values = glm::vec2(0.0f);
+        state.editor.spawnActive = false;
     }
 
     void _ApplyPreview(AtelieState& state) {
+        if (state.editor.tool == ActiveTool::Spawn) {
+            if (state.editor.spawnActive) {
+                Scene::Object obj = Scene::CreateSceneObject(state.editor.spawnType);
+                obj.position = state.editor.previewTranslate;
+                state.scene.push_back(obj);
+                state.selected.push_back(false);
+            }
+            _CancelPreview(state);
+            return;
+        }
+
+        if (state.editor.tool == ActiveTool::Delete) {
+            if (state.scene.empty()) {
+                _CancelPreview(state);
+                return;
+            }
+            if (state.multiselect) {
+                for (int i = (int)state.scene.size() - 1; i >= 0; i--) {
+                    if (state.selected[i]) {
+                        Scene::DestroySceneObject(state.scene[i]);
+                        state.scene.erase(state.scene.begin() + i);
+                        state.selected.erase(state.selected.begin() + i);
+                    }
+                }
+                if (state.scene.empty()) state.cursor = 0;
+                else state.cursor %= state.scene.size();
+            } else {
+                Scene::DestroySceneObject(state.scene[state.cursor]);
+                state.scene.erase(state.scene.begin() + state.cursor);
+                state.selected.erase(state.selected.begin() + state.cursor);
+                if (state.scene.empty()) state.cursor = 0;
+                else state.cursor %= state.scene.size();
+            }
+            _CancelPreview(state);
+            return;
+        }
+
         for (int i = 0; i < state.scene.size(); i++) {
             if (i != state.cursor && !state.selected[i]) continue;
             state.scene[i].position += state.editor.previewTranslate;
@@ -427,6 +511,12 @@ namespace Input {
                     break;
                 case ActiveTool::Scale:
                     consumed = _HandleScale(*state, key);
+                    break;
+                case ActiveTool::Spawn:
+                    consumed = _HandleSpawn(*state, key);
+                    break;
+                case ActiveTool::Delete:
+                    consumed = _HandleDelete(*state, key);
                     break;
             }
         }
