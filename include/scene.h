@@ -9,7 +9,7 @@
 #include "primitives.h"
 
 namespace Scene {
-    enum class BasicObjectType { Cube };
+    enum class BasicObjectType { Cube, Cylinder };
 
     struct MeshData {
         std::vector<Vertex> vertices;
@@ -31,5 +31,6 @@ namespace Scene {
     };
 
     Object CreateSceneObject(BasicObjectType type);
+    void DestroySceneObject(Object& object);
 }
 

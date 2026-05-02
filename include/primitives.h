@@ -14,4 +14,7 @@ namespace Primitives {
 
     std::vector<Vertex> TriangleVertices();
     std::vector<unsigned int> TriangleIndices();
+
+    std::vector<Vertex> CylinderVertices();
+    std::vector<unsigned int> CylinderIndices();
 }

@@ -10,6 +10,10 @@ namespace Scene {
                 mesh.vertices = Primitives::CubeVertices();
                 mesh.indices = Primitives::CubeIndices();
                 break;
+            case BasicObjectType::Cylinder:
+                mesh.vertices = Primitives::CylinderVertices();
+                mesh.indices = Primitives::CylinderIndices();
+                break;
         }
 
         for (int i = 0; i < mesh.vertices.size(); i++) object.selected.push_back(false);
@@ -44,5 +48,11 @@ namespace Scene {
 
         glBindVertexArray(0);
         return object;
+    }
+
+    void DestroySceneObject(Object& object) {
+        glDeleteVertexArrays(1, &object.meshData.VAO);
+        glDeleteBuffers(1, &object.meshData.VBO);
+        glDeleteBuffers(1, &object.meshData.EBO);
     }
 }

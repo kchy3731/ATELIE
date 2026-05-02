@@ -67,6 +67,16 @@ void _ProcessStatusString(AtelieState& state) {
             if (state.editor.constraints.z) statusString[27] = 'Z'; else statusString[27] = '-';
             if (state.editor.constraints.local) statusString[28] = 'L'; else statusString[28] = '-';
             break;
+        case (ActiveTool::Spawn):
+            strncpy(statusString + 20, "SPWN-----", 9);
+            if (state.editor.spawnActive) {
+                if (state.editor.spawnType == Scene::BasicObjectType::Cube) statusString[25] = 'C';
+                else if (state.editor.spawnType == Scene::BasicObjectType::Cylinder) statusString[25] = 'T';
+            }
+            break;
+        case (ActiveTool::Delete):
+            strncpy(statusString + 20, "DELT-----", 9);
+            break;
     }
 }
 

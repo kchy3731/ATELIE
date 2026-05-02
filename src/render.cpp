@@ -130,6 +130,11 @@ namespace Render {
     int numGridVertices;
 
     unsigned int lineVAO, lineVBO;
+    
+    unsigned int previewCubeVAO, previewCubeVBO, previewCubeEBO;
+    int numPreviewCubeIndices;
+    unsigned int previewCylinderVAO, previewCylinderVBO, previewCylinderEBO;
+    int numPreviewCylinderIndices;
 
     void Init() {
         unsigned int simpleVertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -213,6 +218,38 @@ namespace Render {
         glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(glm::vec3), (void*)0);
         glEnableVertexAttribArray(0);
         glBindVertexArray(0);
+
+        // Preview Cube
+        std::vector<Vertex> cv = Primitives::CubeVertices();
+        std::vector<unsigned int> ci = Primitives::CubeIndices();
+        numPreviewCubeIndices = ci.size();
+        glGenVertexArrays(1, &previewCubeVAO);
+        glGenBuffers(1, &previewCubeVBO);
+        glGenBuffers(1, &previewCubeEBO);
+        glBindVertexArray(previewCubeVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, previewCubeVBO);
+        glBufferData(GL_ARRAY_BUFFER, cv.size() * sizeof(Vertex), cv.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, previewCubeEBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, ci.size() * sizeof(unsigned int), ci.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        // Preview Cylinder
+        std::vector<Vertex> cyv = Primitives::CylinderVertices();
+        std::vector<unsigned int> cyi = Primitives::CylinderIndices();
+        numPreviewCylinderIndices = cyi.size();
+        glGenVertexArrays(1, &previewCylinderVAO);
+        glGenBuffers(1, &previewCylinderVBO);
+        glGenBuffers(1, &previewCylinderEBO);
+        glBindVertexArray(previewCylinderVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, previewCylinderVBO);
+        glBufferData(GL_ARRAY_BUFFER, cyv.size() * sizeof(Vertex), cyv.data(), GL_STATIC_DRAW);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, previewCylinderEBO);
+        glBufferData(GL_ELEMENT_ARRAY_BUFFER, cyi.size() * sizeof(unsigned int), cyi.data(), GL_STATIC_DRAW);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (void*)0);
+        glEnableVertexAttribArray(0);
+
+        glBindVertexArray(0);
     }
 
     void _DrawObjectMode(const AtelieState& state) {
@@ -243,14 +280,14 @@ namespace Render {
 
                 glm::mat4 model = glm::mat4(1.0f);
                 glm::vec3 position = obj.position;
-                if (state.cursor == i || state.selected[i]) {
+                if ((state.cursor == i || state.selected[i]) && state.editor.tool != ActiveTool::Spawn) {
                     position = position + state.editor.previewTranslate;
                 }
                 glm::vec3 pivot = state.scene[state.cursor].position;
                 glm::vec3 offset = position - pivot;
                 glm::quat rotation = obj.rotation;
                 glm::vec3 scale = obj.scale;
-                if (state.cursor == i || state.selected[i]) {
+                if ((state.cursor == i || state.selected[i]) && state.editor.tool != ActiveTool::Spawn) {
                     rotation = state.editor.previewRotate * rotation;
                     scale = state.editor.previewScale * scale;
                     position = pivot + state.editor.previewScale * (state.editor.previewRotate * offset);
@@ -271,6 +308,8 @@ namespace Render {
                 glBindVertexArray(0);
             }
         }
+
+        // if (!state.editor.wireframe) glDisable(GL_POLYGON_OFFSET_LINE);
         
         if (state.editor.wireframe) glDisable(GL_DEPTH_TEST);
 
@@ -295,14 +334,14 @@ namespace Render {
 
                 glm::mat4 model = glm::mat4(1.0f);
                 glm::vec3 position = obj.position;
-                if (state.cursor == i || state.selected[i]) {
+                if ((state.cursor == i || state.selected[i]) && state.editor.tool != ActiveTool::Spawn) {
                     position = position + state.editor.previewTranslate;
                 }
                 glm::vec3 pivot = state.scene[state.cursor].position;
                 glm::vec3 offset = position - pivot;
                 glm::quat rotation = obj.rotation;
                 glm::vec3 scale = obj.scale;
-                if (state.cursor == i || state.selected[i]) {
+                if ((state.cursor == i || state.selected[i]) && state.editor.tool != ActiveTool::Spawn) {
                     rotation = state.editor.previewRotate * rotation;
                     scale = state.editor.previewScale * scale;
                     position = pivot + state.editor.previewScale * (state.editor.previewRotate * offset);
@@ -328,6 +367,50 @@ namespace Render {
             glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);
             glBindVertexArray(0);
         }
+
+        if (state.editor.tool == ActiveTool::Spawn) {
+            auto drawCrosshair = [&](glm::vec3 pos) {
+                glm::vec3 axes[3] = { {0.5f, 0, 0}, {0, 0.5f, 0}, {0, 0, 0.5f} };
+                glm::vec3 colors[3] = { {1,0,0}, {0,1,0}, {0,0,1} };
+                
+                glm::mat4 idMat(1.0f);
+                glUniformMatrix4fv(wireframeUniforms.m, 1, GL_FALSE, &idMat[0][0]);
+                
+                for (int i = 0; i < 3; i++) {
+                    glm::vec3 pts[2] = { pos - axes[i], pos + axes[i] };
+                    glBindBuffer(GL_ARRAY_BUFFER, lineVBO);
+                    glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(pts), pts);
+                    glUniform3fv(wireframeUniforms.wireColour, 1, &colors[i][0]);
+                    glBindVertexArray(lineVAO);
+                    glDrawArrays(GL_LINES, 0, 2);
+                }
+            };
+            drawCrosshair(state.editor.previewTranslate);
+            glBindVertexArray(0);
+        }
+
+        if (state.editor.tool == ActiveTool::Spawn && state.editor.spawnActive) {
+            // Draw ghost of the object to be spawned
+            glm::mat4 model = glm::mat4(1.0f);
+            model = glm::translate(model, state.editor.previewTranslate);
+            glm::mat4 vp = projection * view;
+            
+            glUniformMatrix4fv(wireframeUniforms.m, 1, GL_FALSE, &model[0][0]);
+            glUniformMatrix4fv(wireframeUniforms.vp, 1, GL_FALSE, &vp[0][0]);
+            glm::vec3 ghostCol(0.8f, 0.8f, 0.8f);
+            glUniform3fv(wireframeUniforms.wireColour, 1, &ghostCol[0]);
+            
+            if (state.editor.spawnType == Scene::BasicObjectType::Cube) {
+                glBindVertexArray(previewCubeVAO);
+                glDrawElements(GL_TRIANGLES, numPreviewCubeIndices, GL_UNSIGNED_INT, 0);
+            } else if (state.editor.spawnType == Scene::BasicObjectType::Cylinder) {
+                glBindVertexArray(previewCylinderVAO);
+                glDrawElements(GL_TRIANGLES, numPreviewCylinderIndices, GL_UNSIGNED_INT, 0);
+            }
+            glBindVertexArray(0);
+        }
+
+
 
         if (state.scene.size() > 0 && (state.editor.constraints.x || state.editor.constraints.y || state.editor.constraints.z)) {
             glDisable(GL_DEPTH_TEST);

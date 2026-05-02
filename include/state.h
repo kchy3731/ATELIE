@@ -14,9 +14,9 @@
 
 enum class CameraOrientation { Free, SnappedX, SnappedY, SnappedZ };
 
-enum class ActiveTool { None, Increment, View, Translate, Rotate, Scale };
+enum class ActiveTool { None, Increment, View, Translate, Rotate, Scale, Spawn, Delete };
 
-enum class MeshType { Cube, Triangle, Plane };
+enum class MeshType { Cube, Triangle, Plane, Cylinder };
 enum class ObjectType { Static, Dynamic, Light };
 
 struct Keystroke {
@@ -72,6 +72,9 @@ struct EditorState {
 
     bool wireframe = false;
     ActiveTool tool = ActiveTool::None;
+
+    Scene::BasicObjectType spawnType = Scene::BasicObjectType::Cube;
+    bool spawnActive = false;
 };
 
 // Our global struct! As Atlas holds up the Earth...
