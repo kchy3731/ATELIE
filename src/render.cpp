@@ -342,6 +342,7 @@ namespace Render {
         glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  
 
         for (int i = 0; i < state.scene.size(); i++) {  
+            if (state.cursor == i) continue;
             const Scene::Object& obj = state.scene[i];  
             const Scene::MeshData& mesh = obj.meshData;  
 
@@ -391,6 +392,42 @@ namespace Render {
         }  
     }
 
+    void _DrawEditActiveSolid(const AtelieState& state, const glm::mat4& vp) {
+        glUseProgram(editSolidShaderProgram);  
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);  
+  
+        const Scene::Object& obj = state.scene[state.cursor];  
+        const Scene::MeshData& mesh = obj.meshData;  
+  
+        glm::mat4 model = glm::mat4(1.0f);  
+        glm::vec3 position = obj.position;  
+        glm::quat rotation = obj.rotation;  
+        glm::vec3 scale = obj.scale;  
+        model = glm::translate(model, position);  
+        model *= glm::mat4_cast(rotation);  
+        model = glm::scale(model, scale);
+    
+        glm::vec3 pivot;
+        if (state.editor.constraints.local) pivot = mesh.vertices[obj.cursor].position;
+        else pivot = obj.pivot;
+
+        glm::mat4 id = glm::mat4(1.0f);  
+        glUniformMatrix4fv(editSolidUniforms.m, 1, GL_FALSE, &model[0][0]);  
+        glUniformMatrix4fv(editSolidUniforms.vp, 1, GL_FALSE, &vp[0][0]);  
+        glUniform1f(editSolidUniforms.depthNudge, 0.0f);  
+        glUniform3fv(editSolidUniforms.previewTranslate, 1, &state.editor.previewTranslate[0]);  
+        glm::mat4 previewRotMap = glm::mat4_cast(state.editor.previewRotate);  
+        glUniformMatrix4fv(editSolidUniforms.previewRotate, 1, GL_FALSE, &previewRotMap[0][0]);  
+        glUniform3fv(editSolidUniforms.previewScale, 1, &state.editor.previewScale[0]);  
+        glUniform3fv(editSolidUniforms.pivot, 1, &pivot[0]);  
+        glUniform3fv(editSolidUniforms.cameraPos, 1, &state.camera.position[0]);  
+  
+        glBindVertexArray(mesh.VAO);  
+        glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);  
+        glDrawElements(GL_POINTS, mesh.indices.size(), GL_UNSIGNED_INT, 0);  
+        glBindVertexArray(0);
+    }
+
     void _DrawEditActiveWireframe(const AtelieState& state, const glm::mat4& vp) {
         glUseProgram(editWireframeShaderProgram);  
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);  
@@ -407,6 +444,10 @@ namespace Render {
         model *= glm::mat4_cast(rotation);  
         model = glm::scale(model, scale);  
   
+        glm::vec3 pivot;
+        if (state.editor.constraints.local) pivot = mesh.vertices[obj.cursor].position;
+        else pivot = obj.pivot;
+
         glm::mat4 id = glm::mat4(1.0f);  
         glUniformMatrix4fv(editWireframeUniforms.m, 1, GL_FALSE, &model[0][0]);  
         glUniformMatrix4fv(editWireframeUniforms.vp, 1, GL_FALSE, &vp[0][0]);  
@@ -415,7 +456,7 @@ namespace Render {
         glm::mat4 previewRotMap = glm::mat4_cast(state.editor.previewRotate);  
         glUniformMatrix4fv(editWireframeUniforms.previewRotate, 1, GL_FALSE, &previewRotMap[0][0]);  
         glUniform3fv(editWireframeUniforms.previewScale, 1, &state.editor.previewScale[0]);  
-        glUniformMatrix4fv(editWireframeUniforms.pivot, 1, GL_FALSE, &id[0][0]);  
+        glUniform3fv(editWireframeUniforms.pivot, 1, &pivot[0]);  
   
         glBindVertexArray(mesh.VAO);  
         glDrawElements(GL_TRIANGLES, mesh.indices.size(), GL_UNSIGNED_INT, 0);  
@@ -454,16 +495,25 @@ namespace Render {
   
         if (!state.editor.wireframe) {  
             glEnable(GL_DEPTH_TEST);  
-            _DrawEditSolidPass(state, vp); 
+            _DrawEditSolidPass(state, vp);
+            _DrawEditActiveSolid(state, vp); 
         } else {
             glDisable(GL_DEPTH_TEST);  
         } 
+
+        _DrawGrid(vp);
   
         if (state.editor.wireframe) {  
             _DrawEditBackgroundWireframe(state, vp);
         }  
   
         _DrawEditActiveWireframe(state, vp);
+
+        if (state.scene.size() > 0 && (state.editor.constraints.x || state.editor.constraints.y || state.editor.constraints.z)) {  
+            glDisable(GL_DEPTH_TEST);
+            _DrawConstraints(state, vp);
+            glEnable(GL_DEPTH_TEST);  
+        }  
     }
 
     // --- public

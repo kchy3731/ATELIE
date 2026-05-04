@@ -38,21 +38,18 @@ namespace Input {
             case GLFW_KEY_MINUS: state.camera.radius += 0.25f; state.camera.orthographicSize += 0.25f; break;
             // ---
             case GLFW_KEY_SPACE:
-                if (!state.multiselect) {
-                    state.multiselect = true;
-                    std::fill(state.selected.begin(), state.selected.end(), false);
-                }
-                state.selected[state.cursor] = !state.selected[state.cursor];
+                if (state.editor.editMode) EditSelect(state);
+                else ObjectSelect(state);
                 break;
             // ---
             case GLFW_KEY_RIGHT_BRACKET:
-                if (state.editor.editMode) {
-                    EditAdvanceCursor(state);
-                    break;
-                }
-                state.cursor = (state.cursor + 1) % state.selected.size();
+                if (state.editor.editMode) EditAdvanceCursor(state);
+                else ObjectAdvanceCursor(state);
                 break;
-            case GLFW_KEY_LEFT_BRACKET: state.cursor = (state.cursor == 0) ? state.selected.size() - 1 : state.cursor - 1; break;
+            case GLFW_KEY_LEFT_BRACKET:
+                if (state.editor.editMode) EditAdvanceCursor(state, false);
+                else ObjectAdvanceCursor(state, false);
+                break;
             // ---
             case GLFW_KEY_BACKSLASH: state.editor.tool = ActiveTool::Increment; break;
             case GLFW_KEY_V: state.editor.tool = ActiveTool::View; break;
@@ -434,20 +431,9 @@ namespace Input {
             return;
         }
 
-        for (int i = 0; i < state.scene.size(); i++) {
-            if (i != state.cursor && !state.selected[i]) continue;
-            state.scene[i].position += state.editor.previewTranslate;
+        if (state.editor.editMode) EditApply(state);
+        else ObjectApply(state);
 
-            glm::vec3 pivot = state.scene[state.cursor].position;
-            glm::vec3 offset = state.scene[i].position - pivot;
-            glm::quat rotation = state.scene[i].rotation;
-            glm::vec3 scale = state.scene[i].scale;
-            rotation = state.editor.previewRotate * rotation;
-            scale = state.editor.previewScale * scale;
-            state.scene[i].position = pivot + state.editor.previewScale * (state.editor.previewRotate * offset);
-            state.scene[i].rotation = rotation;
-            state.scene[i].scale = scale;
-        }
         _CancelPreview(state);
     }
 
@@ -470,8 +456,12 @@ namespace Input {
                 if (editor.tool == ActiveTool::Increment) goto commit;
                 transcript.pending.clear();
             } else {
-                state->multiselect = false;
-                std::fill(state->selected.begin(), state->selected.end(), false);
+                if (state->editor.editMode) {
+                    EditClearSelect(*state);
+                } else {
+                    state->multiselect = false;
+                    std::fill(state->selected.begin(), state->selected.end(), false);
+                }
             }
             _CancelPreview(*state);
             editor.tool = ActiveTool::None;

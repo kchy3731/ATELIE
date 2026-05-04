@@ -27,7 +27,7 @@ void UI::Init(GLFWwindow* window) {
 }
 
 void _ProcessStatusString(AtelieState& state) {
-    if (state.multiselect) statusString[1] = 'M';
+    if (!state.editor.editMode && state.multiselect || state.editor.editMode && state.scene[state.cursor].multiselect) statusString[1] = 'M';
     else statusString[1] = ' ';
     if (state.editor.wireframe) statusString[57] = 'W';
     else statusString[57] = 'S';

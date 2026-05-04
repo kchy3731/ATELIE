@@ -100,4 +100,11 @@ glm::vec3 GetCameraUp(const AtelieState& state);
 
 void EnterEditMode(AtelieState& state);
 void LeaveEditMode(AtelieState& state);
-void EditAdvanceCursor(AtelieState& state);
+void ObjectSelect(AtelieState& state);
+void ObjectAdvanceCursor(AtelieState& state, bool forward = true);
+void EditSelect(AtelieState& state);
+void EditClearSelect(AtelieState& state);
+void EditAdvanceCursor(AtelieState& state, bool forward = true);
+
+void ObjectApply(AtelieState& state);
+void EditApply(AtelieState& state);
