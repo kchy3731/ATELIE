@@ -307,13 +307,22 @@ namespace Render {
         auto drawAxis = [&](bool active, int axisIdx, glm::vec3 colour) {  
             if (!active) return;  
             glm::vec3 dir(0.0f);  
-            if (state.editor.constraints.local) {  
+            if (!state.editor.editMode && state.editor.constraints.local) {  
                 glm::mat3 anchorRotBasis = GetRotBasis(state.scene[state.cursor]);  
                 dir = anchorRotBasis[axisIdx];  
             } else {  
                 dir[axisIdx] = 1.0f;  
             }  
-            glm::vec3 pivot = state.scene[state.cursor].position;  
+            glm::vec3 pivot;
+            if (state.editor.editMode) {
+                if (state.editor.constraints.local) {
+                    // amazing
+                    pivot = state.scene[state.cursor].meshData.vertices[state.scene[state.cursor].cursor].position;
+                } else {
+                    pivot = state.scene[state.cursor].pivot;
+                }
+            }
+            else pivot = state.scene[state.cursor].position;
             glm::vec3 p1 = pivot - dir * 1000.0f;  
             glm::vec3 p2 = pivot + dir * 1000.0f;  
             glm::vec3 pts[2] = {p1, p2};  
