@@ -1,5 +1,6 @@
-# instructions to run
+# instructions
 
-1. `cmake .`
-2. `make`
-3. `./bin/ATELIE`
+1. download the merge-attempt-2 branch
+2. `cmake .`
+3. `make`
+4. `./bin/ATELIE`
