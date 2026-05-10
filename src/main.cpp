@@ -1,4 +1,5 @@
 #include <iostream>
+#include <string>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -56,9 +57,16 @@ float lastFrame = 0.0f;
 // --- Global State for Input ---
 // (In a real engine, this goes in your Stage/State Machine class)
 int currentMeshIndex = 0; 
-bool key1_pressed_last_frame = false;
-bool key2_pressed_last_frame = false;
 
+std::string inputBuffer = "";
+glm::mat4 customTransform = glm::mat4(1.0f);
+
+void character_callback(GLFWwindow* window, unsigned int codepoint) {
+    if (codepoint >= '0' && codepoint <= '9') {
+        inputBuffer += (char)codepoint;
+        std::cout << "Buffer: " << inputBuffer << std::endl;
+    }
+}
 
 #include "state.h"
 #include "primitives.h"
