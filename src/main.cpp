@@ -1,3 +1,6 @@
+#include <glad/glad.h>
+#include <GLFW/glfw3.h>
+
 #include <iostream>
 #include <string>
 #include <glm/glm.hpp>
@@ -69,7 +72,6 @@ void character_callback(GLFWwindow* window, unsigned int codepoint) {
 }
 
 #include "state.h"
-#include "primitives.h"
 #include "scene.h"
 
 #include "input.h"

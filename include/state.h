@@ -3,13 +3,11 @@
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 
-#include <string>
 #include <vector>
 
-#include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
-#include "primitives.h"
 #include "scene.h"
 
 enum class CameraOrientation { Free, SnappedX, SnappedY, SnappedZ };
@@ -19,14 +17,22 @@ enum class ActiveTool { None, Increment, View, Translate, Rotate, Scale, Spawn, 
 enum class MeshType { Cube, Triangle, Plane, Cylinder };
 enum class ObjectType { Static, Dynamic, Light };
 
-struct Keystroke {
+struct TransformConstraints {
+    bool x;
+    bool y;
+    bool z;
+    bool local;
+};
+
+struct Command {
     int key;
-    int mods;
+    TransformConstraints constraints;
+    glm::vec2 values;
 };
 
 struct Transcript {
-    std::vector<Keystroke> committed;
-    std::vector<Keystroke> pending;
+    std::vector<Command> committed;
+    Command pending;
 };
 
 struct UIState {
@@ -48,13 +54,6 @@ struct CameraState {
     CameraOrientation orientation = CameraOrientation::Free;
 
     glm::vec3 position;
-};
-
-struct TransformConstraints {
-    bool x;
-    bool y;
-    bool z;
-    bool local;
 };
 
 struct EditorState {

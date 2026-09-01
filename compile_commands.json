@@ -1,0 +1,92 @@
+[
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/src/state.cpp.o -c /Users/cocktail/Sandbox/ATELIE/src/state.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/src/state.cpp",
+  "output": "CMakeFiles/ATELIE.dir/src/state.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/src/main.cpp.o -c /Users/cocktail/Sandbox/ATELIE/src/main.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/src/main.cpp",
+  "output": "CMakeFiles/ATELIE.dir/src/main.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/src/input.cpp.o -c /Users/cocktail/Sandbox/ATELIE/src/input.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/src/input.cpp",
+  "output": "CMakeFiles/ATELIE.dir/src/input.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/src/render.cpp.o -c /Users/cocktail/Sandbox/ATELIE/src/render.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/src/render.cpp",
+  "output": "CMakeFiles/ATELIE.dir/src/render.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/src/primitives.cpp.o -c /Users/cocktail/Sandbox/ATELIE/src/primitives.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/src/primitives.cpp",
+  "output": "CMakeFiles/ATELIE.dir/src/primitives.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/src/scene.cpp.o -c /Users/cocktail/Sandbox/ATELIE/src/scene.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/src/scene.cpp",
+  "output": "CMakeFiles/ATELIE.dir/src/scene.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/src/ui.cpp.o -c /Users/cocktail/Sandbox/ATELIE/src/ui.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/src/ui.cpp",
+  "output": "CMakeFiles/ATELIE.dir/src/ui.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/cc  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include  -arch arm64 -o CMakeFiles/ATELIE.dir/vendor/glad/src/glad.c.o -c /Users/cocktail/Sandbox/ATELIE/vendor/glad/src/glad.c",
+  "file": "/Users/cocktail/Sandbox/ATELIE/vendor/glad/src/glad.c",
+  "output": "CMakeFiles/ATELIE.dir/vendor/glad/src/glad.c.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/vendor/imgui/imgui.cpp.o -c /Users/cocktail/Sandbox/ATELIE/vendor/imgui/imgui.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/vendor/imgui/imgui.cpp",
+  "output": "CMakeFiles/ATELIE.dir/vendor/imgui/imgui.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/vendor/imgui/imgui_demo.cpp.o -c /Users/cocktail/Sandbox/ATELIE/vendor/imgui/imgui_demo.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/vendor/imgui/imgui_demo.cpp",
+  "output": "CMakeFiles/ATELIE.dir/vendor/imgui/imgui_demo.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/vendor/imgui/imgui_draw.cpp.o -c /Users/cocktail/Sandbox/ATELIE/vendor/imgui/imgui_draw.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/vendor/imgui/imgui_draw.cpp",
+  "output": "CMakeFiles/ATELIE.dir/vendor/imgui/imgui_draw.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/vendor/imgui/imgui_tables.cpp.o -c /Users/cocktail/Sandbox/ATELIE/vendor/imgui/imgui_tables.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/vendor/imgui/imgui_tables.cpp",
+  "output": "CMakeFiles/ATELIE.dir/vendor/imgui/imgui_tables.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/vendor/imgui/imgui_widgets.cpp.o -c /Users/cocktail/Sandbox/ATELIE/vendor/imgui/imgui_widgets.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/vendor/imgui/imgui_widgets.cpp",
+  "output": "CMakeFiles/ATELIE.dir/vendor/imgui/imgui_widgets.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/vendor/imgui/backends/imgui_impl_glfw.cpp.o -c /Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends/imgui_impl_glfw.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends/imgui_impl_glfw.cpp",
+  "output": "CMakeFiles/ATELIE.dir/vendor/imgui/backends/imgui_impl_glfw.cpp.o"
+},
+{
+  "directory": "/Users/cocktail/Sandbox/ATELIE",
+  "command": "/usr/bin/c++  -I/Users/cocktail/Sandbox/ATELIE/include -I/Users/cocktail/Sandbox/ATELIE/vendor -I/Users/cocktail/Sandbox/ATELIE/vendor/glm -I/Users/cocktail/Sandbox/ATELIE/vendor/glad/include -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui -I/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends -iframework /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/System/Library/Frameworks -isystem /opt/homebrew/include -std=gnu++17 -arch arm64 -o CMakeFiles/ATELIE.dir/vendor/imgui/backends/imgui_impl_opengl3.cpp.o -c /Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends/imgui_impl_opengl3.cpp",
+  "file": "/Users/cocktail/Sandbox/ATELIE/vendor/imgui/backends/imgui_impl_opengl3.cpp",
+  "output": "CMakeFiles/ATELIE.dir/vendor/imgui/backends/imgui_impl_opengl3.cpp.o"
+}
+]

@@ -39,7 +39,7 @@ namespace Primitives {
 
     std::vector<Vertex> CylinderVertices() {
         std::vector<Vertex> vertices;
-        int segments = 16;
+        int segments = 8;
         float radius = 0.5f;
         float halfHeight = 0.5f;
         

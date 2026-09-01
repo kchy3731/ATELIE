@@ -1,11 +1,61 @@
 #include "input.h"
 
-#include <glm.hpp>
-#include <gtc/matrix_transform.hpp>
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <string>
+#include <iostream>
 
 namespace Input {
+    // DEBUG
+    std::string GetSafeKeyName(int key) {
+        const char* name = glfwGetKeyName(key, 0);
+        
+        if (name != nullptr) {
+            return std::string(name);
+        }
+        
+        switch (key) {
+            case GLFW_KEY_TAB:           return "Tab";
+            case GLFW_KEY_ENTER:         return "Enter";
+            case GLFW_KEY_ESCAPE:        return "Escape";
+            case GLFW_KEY_SPACE:         return "Space";
+            case GLFW_KEY_BACKSPACE:     return "Backspace";
+            case GLFW_KEY_UP:            return "Up";
+            case GLFW_KEY_DOWN:          return "Down";
+            case GLFW_KEY_LEFT:          return "Left";
+            case GLFW_KEY_RIGHT:         return "Right";
+            case GLFW_KEY_LEFT_SHIFT:    return "LShift";
+            case GLFW_KEY_RIGHT_SHIFT:   return "RShift";
+            case GLFW_KEY_LEFT_CONTROL:  return "LCtrl";
+            case GLFW_KEY_RIGHT_CONTROL: return "RCtrl";
+            case GLFW_KEY_LEFT_ALT:      return "LAlt";
+            case GLFW_KEY_RIGHT_ALT:     return "RAlt";
+            default:                     return "UnknownKey"; 
+        }
+    }
+    void __PrintCommand(const Command& command) {
+        std::cout << "\n";
+        std::cout << "---CMD---\n";
+
+        int key = command.key;
+        std::cout << "key: " << GetSafeKeyName(command.key) << '\n';
+    
+        TransformConstraints c = command.constraints;
+        std::string constraints = "----";
+        if (c.x) constraints[0] = 'X';
+        if (c.y) constraints[1] = 'Y';
+        if (c.z) constraints[2] = 'Z';
+        if (c.local) constraints[3] = 'L';
+        std::cout << "constraints: " << constraints << '\n';
+
+        glm::vec2 v = command.values;
+        std::cout << "values: (" << std::to_string(v.x) << ", " << std::to_string(v.y) << ")\n";
+    }
+
     // private
     void _CancelPreview(AtelieState& state);
+    void _WritePending(AtelieState& state);
 
     void _UpdateCameraPosition(AtelieState& state) {
         state.camera.polar = (state.camera.polar > 90.0f) ? 90.0f : state.camera.polar;
@@ -21,6 +71,7 @@ namespace Input {
     }
 
     bool _HandleIdle(AtelieState& state, int key) {
+        state.transcript.pending.key = key;
         switch (key) {
             case GLFW_KEY_Z: state.editor.wireframe = !state.editor.wireframe; break;
             case GLFW_KEY_O: state.camera.orthographic = !state.camera.orthographic; break;
@@ -97,6 +148,7 @@ namespace Input {
                     state.camera.azimuth = 90.0f;
                     state.camera.orientation = CameraOrientation::SnappedX;
                 }
+                state.editor.constraints.x = true;
                 break;
             case GLFW_KEY_Y:
                 if (state.camera.orientation == CameraOrientation::SnappedY) {
@@ -108,6 +160,7 @@ namespace Input {
                     state.camera.azimuth = 0.0f;
                     state.camera.orientation = CameraOrientation::SnappedY;
                 }
+                state.editor.constraints.y = true;
                 break;
             case GLFW_KEY_Z:
                 if (state.camera.orientation == CameraOrientation::SnappedZ) {
@@ -119,11 +172,14 @@ namespace Input {
                     state.camera.azimuth = 0.0f;
                     state.camera.orientation = CameraOrientation::SnappedZ;
                 }
+                state.editor.constraints.z = true;
                 break;
             default: return false;
         }
+        _WritePending(state);
+        _CancelPreview(state);
         state.editor.tool = ActiveTool::None;
-        return true;
+        return false;
     }
 
     float AxisSign(const glm::vec3& camVec, const glm::vec3& axis, const glm::mat3& localBasisInv, bool local) {
@@ -437,6 +493,23 @@ namespace Input {
         _CancelPreview(state);
     }
 
+    void _ClearPending(AtelieState& state) {
+        state.transcript.pending.key = -1;
+        state.transcript.pending.constraints.x = false;
+        state.transcript.pending.constraints.y = false;
+        state.transcript.pending.constraints.z = false;
+        state.transcript.pending.constraints.local = false;
+        state.transcript.pending.values = glm::vec2(0.0f, 0.0f);
+    }
+
+    void _WritePending(AtelieState& state) {
+        state.transcript.pending.constraints = state.editor.constraints;
+        state.transcript.pending.values = state.editor.values;
+        __PrintCommand(state.transcript.pending);
+        state.transcript.committed.push_back(state.transcript.pending);
+        _ClearPending(state);
+    }
+
     void _KeyCallback(GLFWwindow* window, int key, int scancode, int action, int mods) {
         if (action != GLFW_PRESS && action != GLFW_REPEAT) return;
 
@@ -453,8 +526,8 @@ namespace Input {
         // ======
         if (key == GLFW_KEY_ESCAPE) {
             if (toolActive) {
-                if (editor.tool == ActiveTool::Increment) goto commit;
-                transcript.pending.clear();
+                if (editor.tool == ActiveTool::Increment) _WritePending(*state);
+                else _ClearPending(*state);
             } else {
                 if (state->editor.editMode) {
                     EditClearSelect(*state);
@@ -472,16 +545,8 @@ namespace Input {
         // 2. ENTER
         // ======
         if (key == GLFW_KEY_ENTER && toolActive) {
+            _WritePending(*state);
             _ApplyPreview(*state);
-
-            commit:
-            transcript.pending.push_back({key, mods});
-            transcript.committed.insert(
-                transcript.committed.end(),
-                transcript.pending.begin(),
-                transcript.pending.end()
-            );
-            transcript.pending.clear();
 
             editor.tool = ActiveTool::None;
 
@@ -520,14 +585,11 @@ namespace Input {
             }
         }
 
-        // ======
-        // 4. RECORD
-        // ======
         if (consumed) {
-            if (toolActive) {
-                transcript.pending.push_back({key, mods});
-            } else {
-                transcript.committed.push_back({key, mods});
+            if (editor.tool == ActiveTool::None) {
+                __PrintCommand(transcript.pending);
+                transcript.committed.push_back(transcript.pending);
+                _ClearPending(*state);
             }
         }
     }
