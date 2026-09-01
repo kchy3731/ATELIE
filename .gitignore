@@ -2,8 +2,5 @@
 .DS_Store
 .vscode/
 bin/
-include/
-CMakeCache.txt
-CMakeFiles/
-cmake_install.cmake
-Makefile
+build/
+imgui.ini
