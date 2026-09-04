@@ -73,7 +73,7 @@ void ObjectAdvanceCursor(AtelieState& state, bool forward) {
 void EditAdvanceCursor(AtelieState& state, bool forward) {
     Scene::Object& obj = state.scene[state.cursor];
     if (forward) obj.cursor = (obj.cursor + 1) % obj.meshData.vertices.size();
-    else obj.cursor = (obj.cursor - 1 == -1) ? obj.meshData.vertices.size() : obj.cursor - 1;
+    else obj.cursor = (obj.cursor - 1 == -1) ? obj.meshData.vertices.size() - 1 : obj.cursor - 1;
     _UpdateVBO(obj);
 }
 
