@@ -1,7 +1,12 @@
 #include "input.h"
 
+#include <algorithm>
+
 #include <glm.hpp>
 #include <gtc/matrix_transform.hpp>
+#include <imgui.h>
+
+#include "render.h"
 
 namespace Input {
     // private

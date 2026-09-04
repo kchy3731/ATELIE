@@ -1,8 +1,7 @@
 #pragma once
 
-#include <glad/glad.h>
-
 #include <vector>
+
 #include <glm.hpp>
 #include <gtc/quaternion.hpp>
 

@@ -1,7 +1,7 @@
 #include "ui.h"
 
 // "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
-char* statusString;
+static char statusString[64];
 
 void UI::Init(GLFWwindow* window) {
     IMGUI_CHECKVERSION();
@@ -22,7 +22,6 @@ void UI::Init(GLFWwindow* window) {
     ImGui_ImplGlfw_InitForOpenGL(window, true);
     ImGui_ImplOpenGL3_Init("#version 330 core");
 
-    statusString = (char*) malloc(strlen("                                                         X\0"));
     strcpy(statusString, "                                                         S");
 }
 
@@ -105,5 +104,4 @@ void UI::Cleanup() {
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplGlfw_Shutdown();
     ImGui::DestroyContext();
-    free(statusString);
 }

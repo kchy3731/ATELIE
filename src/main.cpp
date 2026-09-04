@@ -1,11 +1,12 @@
 #include <iostream>
 
-#include "state.h"
-#include "primitives.h"
-#include "scene.h"
+#include <glad/glad.h>
 
 #include "input.h"
+#include "primitives.h"
 #include "render.h"
+#include "scene.h"
+#include "state.h"
 #include "ui.h"
 
 int main() {

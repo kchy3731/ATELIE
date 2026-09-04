@@ -1,6 +1,8 @@
 #include "render.h"  
   
-#include <iostream>  
+#include <iostream>
+
+#include <glad/glad.h>
   
 #include "primitives.h"  
 #include "scene.h"  

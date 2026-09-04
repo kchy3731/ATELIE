@@ -1,5 +1,7 @@
 #include "scene.h"
 
+#include <glad/glad.h>
+
 namespace Scene {
     Object CreateSceneObject(BasicObjectType type) {
         Object object;

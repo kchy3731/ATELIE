@@ -1,5 +1,7 @@
 #include "state.h"
 
+#include <glad/glad.h>
+
 glm::mat3 GetRotBasis(const Scene::Object& obj) {
     return glm::mat3_cast(obj.rotation);
 }
